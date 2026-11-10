@@ -1,0 +1,75 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 160" width="100%" height="100%">
+  <defs>
+    <linearGradient id="l5_gold" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FCD34D" />
+      <stop offset="50%" stop-color="#D4AF37" />
+      <stop offset="100%" stop-color="#92400E" />
+    </linearGradient>
+    <linearGradient id="l5_navy" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1E293B" />
+      <stop offset="100%" stop-color="#020617" />
+    </linearGradient>
+    <filter id="l5_shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="4" stdDeviation="5" flood-color="#0F172A" flood-opacity="0.2" />
+    </filter>
+  </defs>
+
+  <!-- ISOTIPO: MONOGRAMA 'OH' ARQUITECTÓNICO & PUERTA AL FUTURO -->
+  <g transform="translate(30, 15)" filter="url(#l5_shadow)">
+    <!-- El Gran Círculo 'O' (Oasis, Universo Universitario y Sol) -->
+    <circle cx="65" cy="65" r="58" fill="none" stroke="url(#l5_gold)" stroke-width="4.5" />
+    <circle cx="65" cy="65" r="51" fill="none" stroke="rgba(212, 175, 55, 0.25)" stroke-width="1.5" stroke-dasharray="4 4" />
+
+    <!-- La 'H' (Hereditas, Pilares del Hogar y Puente de Convivencia) -->
+    <!-- Columna Izquierda (Etapa Universitaria / Estudios) -->
+    <rect x="42" y="32" width="11" height="66" rx="3" fill="url(#l5_navy)" />
+    <!-- Columna Derecha (Etapa Profesional / Egresados) -->
+    <rect x="77" y="32" width="11" height="66" rx="3" fill="url(#l5_navy)" />
+
+    <!-- Puente de Conexión / Mesa Central (Los Viernes de Convivencia y Cocina) -->
+    <rect x="42" y="60" width="46" height="10" rx="2" fill="url(#l5_gold)" />
+
+    <!-- Portal / Puerta Iluminada que emerge en el centro del puente -->
+    <path d="M 60,60 L 60,44 Q 65,40 70,44 L 70,60 Z" fill="#FFFBEB" stroke="url(#l5_gold)" stroke-width="1" />
+    <circle cx="65" cy="51" r="2" fill="#D4AF37" />
+
+    <!-- Capitel / Remate de la Columna Izquierda y Derecha -->
+    <rect x="39" y="30" width="17" height="4" rx="1" fill="url(#l5_gold)" />
+    <rect x="74" y="30" width="17" height="4" rx="1" fill="url(#l5_gold)" />
+
+    <!-- Base firme de la residencia -->
+    <rect x="34" y="98" width="62" height="5" rx="2" fill="url(#l5_navy)" />
+    <rect x="30" y="103" width="70" height="3" rx="1.5" fill="url(#l5_gold)" />
+
+    <!-- Destello de excelencia en el borde superior derecho -->
+    <polygon points="106,24 109,30 115,33 109,36 106,42 103,36 97,33 103,30" fill="#FCD34D" />
+  </g>
+
+  <!-- LOGOTIPO / TIPOGRAFÍA DERECHA -->
+  <g transform="translate(175, 42)">
+    <text x="0" y="32" font-family="'Cinzel', 'Trajan Pro', 'Bodoni MT', serif" font-size="35" font-weight="800" letter-spacing="4" fill="#0F172A">
+      OASIS
+    </text>
+    <text x="145" y="32" font-family="'Cinzel', 'Trajan Pro', 'Bodoni MT', serif" font-size="35" font-weight="400" letter-spacing="4" fill="#B45309">
+      HEREDITAS
+    </text>
+
+    <!-- Línea divisoria de lujo en oro -->
+    <line x1="0" y1="45" x2="300" y2="45" stroke="url(#l5_gold)" stroke-width="1.8" />
+
+    <!-- SUBTÍTULO CORPORATIVO & RESIDENCIAL -->
+    <text x="0" y="66" font-family="'Inter', 'Helvetica Neue', sans-serif" font-size="11" font-weight="700" letter-spacing="2.8" fill="#1E293B">
+      RESIDENCIA UNIVERSITARIA &amp; PROFESIONAL
+    </text>
+    <text x="0" y="82" font-family="'Inter', sans-serif" font-size="9" font-weight="500" letter-spacing="1.5" fill="#64748B">
+      LA PUERTA AL ÉXITO ACADÉMICO, LABORAL Y HUMANO
+    </text>
+
+    <!-- Badges de audiencia y legado -->
+    <g transform="translate(0, 94)">
+      <text x="0" y="0" font-family="'Inter', sans-serif" font-size="8.5" font-weight="700" fill="#B45309">
+        🏛️ TRADICIÓN DE HOGAR  •  💼 EGRESADOS ACTIVOS  •  📚 EXCELENCIA UPEU &amp; JULIACA
+      </text>
+    </g>
+  </g>
+</svg>

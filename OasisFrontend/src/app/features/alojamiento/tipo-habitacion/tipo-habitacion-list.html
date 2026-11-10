@@ -1,0 +1,77 @@
+<div class="page-container">
+  <div class="page-header">
+    <div>
+      <div class="breadcrumb">Alojamiento / Catálogo</div>
+      <h2 class="page-title">Tipos de Habitación</h2>
+      <p class="page-desc">Gestión del catálogo independiente de categorías habitacionales y tarifas base de la Residencia OASIS.</p>
+    </div>
+    <a routerLink="/alojamiento/tipos-habitacion/nuevo" class="btn btn-primary">
+      <span>➕</span> Nuevo Tipo de Habitación
+    </a>
+  </div>
+
+  @if (error()) {
+    <div class="alert alert-danger">
+      <span class="alert-icon">⚠️</span>
+      <div class="alert-content">{{ error() }}</div>
+      <button class="alert-close" (click)="error.set(null)">✕</button>
+    </div>
+  }
+
+  <div class="card">
+    <div class="card-header">
+      <span class="card-title">Listado Registrado</span>
+      <span class="badge badge-info">{{ tipos().length }} registros</span>
+    </div>
+
+    <div class="table-responsive">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Nombre del Tipo</th>
+            <th>Descripción</th>
+            <th>Capacidad</th>
+            <th>Precio Base (S/.)</th>
+            <th class="text-right">Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (tipo of tipos(); track tipo.id) {
+            <tr>
+              <td><code>#{{ tipo.id }}</code></td>
+              <td><strong>{{ tipo.nombre }}</strong></td>
+              <td class="text-muted">{{ tipo.descripcion || 'Sin descripción' }}</td>
+              <td>
+                <span class="badge badge-capacity">
+                  👤 {{ tipo.capacidadPersonas }} {{ tipo.capacidadPersonas === 1 ? 'persona' : 'personas' }}
+                </span>
+              </td>
+              <td>
+                <span class="price-tag">S/ {{ tipo.precioBase }}</span>
+              </td>
+              <td class="text-right actions-cell">
+                <a [routerLink]="['/alojamiento/tipos-habitacion', tipo.id, 'editar']" class="btn btn-sm btn-outline">
+                  ✏️ Editar
+                </a>
+                <button (click)="eliminar(tipo.id!)" class="btn btn-sm btn-danger">
+                  🗑️ Eliminar
+                </button>
+              </td>
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="6" class="empty-state">
+                @if (cargando()) {
+                  <span>Cargando datos desde el backend...</span>
+                } @else {
+                  <span>No hay tipos de habitación registrados actualmente.</span>
+                }
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

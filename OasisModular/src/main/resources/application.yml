@@ -1,0 +1,12 @@
+spring:
+  application:
+    name: oasismodular
+  profiles:
+    active: dev
+
+# Consulta de DNI (RENIEC) y RUC (SUNAT). Registre un token gratuito en https://decolecta.com
+# y expórtelo como variable de entorno:  setx RENIEC_API_TOKEN "su_token"
+oasis:
+  identidad:
+    base-url: https://api.decolecta.com/v1
+    token: ${RENIEC_API_TOKEN:sk_21338.mJbXANpbZ6idba5P32kodCOmMJTia5pS}

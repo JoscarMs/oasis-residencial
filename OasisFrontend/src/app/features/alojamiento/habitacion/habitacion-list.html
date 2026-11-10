@@ -1,0 +1,117 @@
+<div class="page-container">
+  <div class="page-header">
+    <div>
+      <div class="breadcrumb">Alojamiento / Inventario Dependiente</div>
+      <h2 class="page-title">Habitaciones Físicas</h2>
+      <p class="page-desc">Inventario operativo de unidades habitacionales asociadas a categorías tarifarias del catálogo.</p>
+    </div>
+    <a routerLink="/alojamiento/habitaciones/nueva" class="btn btn-primary">
+      <span>➕</span> Nueva Habitación
+    </a>
+  </div>
+
+  @if (exito()) {
+    <div class="alert alert-success">
+      <span class="alert-icon">✅</span>
+      <div class="alert-content">{{ exito() }}</div>
+      <button class="alert-close" (click)="exito.set(null)">✕</button>
+    </div>
+  }
+
+  @if (error()) {
+    <div class="alert alert-danger">
+      <span class="alert-icon">⚠️</span>
+      <div class="alert-content">{{ error() }}</div>
+      <button class="alert-close" (click)="error.set(null)">✕</button>
+    </div>
+  }
+
+  <div class="card">
+    <div class="card-header">
+      <div class="filter-bar">
+        <label for="filtroTipo" class="filter-label">Filtrar por Tipo (Entidad Padre):</label>
+        <select
+          id="filtroTipo"
+          class="form-control filter-select"
+          [value]="filtroTipoId()"
+          (change)="onFiltroChange($event)"
+        >
+          <option [value]="0">-- Todos los Tipos de Habitación --</option>
+          @for (tipo of tiposHabitacion(); track tipo.id) {
+            <option [value]="tipo.id">{{ tipo.nombre }}</option>
+          }
+        </select>
+      </div>
+      <span class="badge badge-info">{{ habitaciones().length }} registradas</span>
+    </div>
+
+    <div class="table-responsive">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>N° Habitación</th>
+            <th>Piso</th>
+            <th>Tipo Asignado (Padre)</th>
+            <th>Precio Mensual</th>
+            <th>Estado</th>
+            <th class="text-right">Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (hab of habitaciones(); track hab.id) {
+            <tr>
+              <td><code>#{{ hab.id }}</code></td>
+              <td>
+                <strong class="room-number">Hab. {{ hab.numero }}</strong>
+                <div style="display: flex; gap: 4px; margin-top: 4px; font-size: 0.72rem; flex-wrap: wrap;">
+                  <span style="display: inline-block; padding: 2px 6px; border-radius: 4px; font-weight: 600;" [style.background-color]="hab.amoblada ? '#ecfdf5' : '#f1f5f9'" [style.color]="hab.amoblada ? '#047857' : '#64748b'">
+                    {{ hab.amoblada ? '🛋️ Amoblada' : '🚪 Básica' }}
+                  </span>
+                  <span style="display: inline-block; padding: 2px 6px; border-radius: 4px; font-weight: 600;" [style.background-color]="hab.tipoBano === 'PRIVADO' ? '#eff6ff' : '#f8fafc'" [style.color]="hab.tipoBano === 'PRIVADO' ? '#1d4ed8' : '#475569'">
+                    {{ hab.tipoBano === 'PRIVADO' ? '✨ Baño Privado' : '🚿 Baño Compartido' }}
+                  </span>
+                </div>
+              </td>
+              <td><span class="floor-badge">Piso {{ hab.piso }}</span></td>
+              <td>
+                <span class="parent-type-badge">
+                  🏷️ {{ hab.tipoHabitacionNombre || 'Tipo #' + hab.tipoHabitacionId }}
+                </span>
+              </td>
+              <td><span class="price-tag">S/ {{ hab.precio | number:'1.2-2' }}</span></td>
+              <td>
+                <span
+                  class="status-badge"
+                  [class.status-disponible]="hab.estado === 'DISPONIBLE'"
+                  [class.status-ocupado]="hab.estado === 'OCUPADO'"
+                  [class.status-mantenimiento]="hab.estado === 'MANTENIMIENTO'"
+                >
+                  ● {{ hab.estado }}
+                </span>
+              </td>
+              <td class="text-right actions-cell">
+                <a [routerLink]="['/alojamiento/habitaciones', hab.id, 'editar']" class="btn btn-sm btn-outline">
+                  ✏️ Editar
+                </a>
+                <button (click)="eliminar(hab.id!, hab.numero)" class="btn btn-sm btn-danger">
+                  🗑️ Eliminar
+                </button>
+              </td>
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="7" class="empty-state">
+                @if (cargando()) {
+                  <span>Cargando inventario de habitaciones desde el backend...</span>
+                } @else {
+                  <span>No se encontraron habitaciones físicas registradas para el filtro seleccionado.</span>
+                }
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

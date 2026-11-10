@@ -1,0 +1,124 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap');
+
+:root {
+  --oasis-gold: #d1a153;
+  --oasis-gold-hover: #b88a3e;
+  --oasis-gold-dark: #9e752e;
+  --oasis-gold-light: #fdf8ee;
+  --oasis-gold-border: #e6c88b;
+
+  --oasis-navy: #1a252f;
+  --oasis-navy-dark: #111827;
+  --oasis-navy-light: #2c3e50;
+
+  --oasis-bg: #f8fafc;
+  --oasis-card-bg: #ffffff;
+  --oasis-text: #1e293b;
+  --oasis-text-muted: #64748b;
+  --oasis-border: #e2e8f0;
+
+  --oasis-success: #10b981;
+  --oasis-danger: #ef4444;
+  --oasis-warning: #f59e0b;
+  --oasis-info: #0284c7;
+}
+
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background-color: var(--oasis-bg);
+  color: var(--oasis-text);
+  margin: 0;
+  padding: 0;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3, h4, .brand-text {
+  font-family: 'Outfit', 'Inter', sans-serif;
+}
+
+.container {
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.card {
+  background: var(--oasis-card-bg);
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(26, 37, 47, 0.05);
+  border: 1px solid var(--oasis-border);
+  padding: 20px;
+  margin-bottom: 20px;
+}
+
+button {
+  font-family: inherit;
+  background-color: var(--oasis-navy);
+  color: white;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+button:hover {
+  background-color: var(--oasis-navy-light);
+}
+
+input, select, textarea {
+  font-family: inherit;
+  width: 100%;
+  padding: 8px 12px;
+  margin-top: 4px;
+  margin-bottom: 12px;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  box-sizing: border-box;
+  font-size: 0.88rem;
+  color: var(--oasis-text);
+}
+
+input:focus, select:focus, textarea:focus {
+  outline: none;
+  border-color: var(--oasis-gold);
+  box-shadow: 0 0 0 3px rgba(209, 161, 83, 0.15);
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 15px;
+}
+
+table th, table td {
+  text-align: left;
+  padding: 12px;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+table th {
+  background-color: #f8fafc;
+  color: #475569;
+  font-size: 0.76rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Custom scrollbars */
+::-webkit-scrollbar {
+  width: 7px;
+  height: 7px;
+}
+::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}

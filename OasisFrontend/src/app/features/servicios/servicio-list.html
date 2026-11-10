@@ -1,0 +1,457 @@
+<div class="servicios-container">
+  <!-- Cabecera de Página -->
+  <div class="page-header">
+    <div class="header-titles">
+      <div class="breadcrumb">
+        <span>Residencia OASIS</span>
+        <span class="sep">/</span>
+        <span>Servicios Extras & Tienda</span>
+      </div>
+      <h2>🧺 Servicios Extras & Tienda de la Residencia</h2>
+      <p class="subtitle">
+        Solicita servicios adicionales para tu estancia universitaria (lavandería, limpieza, frigobar, cocheras, agua y copias) en Juliaca.
+      </p>
+    </div>
+    
+    <div class="header-actions">
+      @if (authService.isAdmin() || authService.isSupervisor()) {
+        <button type="button" class="btn btn-gold" (click)="abrirModalAdminCrear()">
+          ➕ Nuevo Servicio en Catálogo
+        </button>
+      }
+    </div>
+  </div>
+
+  <!-- Alertas de Feedback -->
+  @if (exito()) {
+    <div class="alert alert-success">
+      <span>✅ {{ exito() }}</span>
+    </div>
+  }
+  @if (error()) {
+    <div class="alert alert-danger">
+      <span>⚠️ {{ error() }}</span>
+    </div>
+  }
+
+  <!-- Navegación por Pestañas -->
+  <div class="tabs-nav">
+    <button
+      class="tab-btn"
+      [class.active]="tabActiva() === 'catalogo'"
+      (click)="setTab('catalogo')"
+    >
+      🛍️ Catálogo de Servicios Disponibles
+      <span class="tab-badge">{{ serviciosFiltrados().length }}</span>
+    </button>
+    <button
+      class="tab-btn"
+      [class.active]="tabActiva() === 'solicitudes'"
+      (click)="setTab('solicitudes')"
+    >
+      📋 {{ authService.isResidente() ? 'Mis Pedidos & Solicitudes' : 'Historial de Solicitudes (ABAC)' }}
+      <span class="tab-badge">{{ compras().length }}</span>
+    </button>
+  </div>
+
+  <!-- PESTAÑA 1: CATÁLOGO DE SERVICIOS -->
+  @if (tabActiva() === 'catalogo') {
+    <!-- Filtros por Categoría -->
+    <div class="categories-bar">
+      <button
+        class="cat-pill"
+        [class.selected]="categoriaFiltro() === 'TODAS'"
+        (click)="filtrarPorCategoria('TODAS')"
+      >
+        🌟 Todas las Categorías
+      </button>
+      @for (cat of categoriasDisponibles; track cat) {
+        <button
+          class="cat-pill"
+          [class.selected]="categoriaFiltro() === cat"
+          (click)="filtrarPorCategoria(cat)"
+        >
+          {{ cat }}
+        </button>
+      }
+    </div>
+
+    @if (cargando()) {
+      <div class="loading-state">
+        <div class="spinner"></div>
+        <p>Cargando servicios disponibles...</p>
+      </div>
+    } @else if (serviciosFiltrados().length === 0) {
+      <div class="empty-state">
+        <div class="empty-icon">🧺</div>
+        <h3>No hay servicios en esta categoría</h3>
+        <p>Selecciona otra categoría o añade nuevos servicios al catálogo de la residencia.</p>
+      </div>
+    } @else {
+      <!-- Grilla de Tarjetas de Servicios -->
+      <div class="services-grid">
+        @for (s of serviciosFiltrados(); track s.id) {
+          <div class="service-card" [class.service-inactive]="!s.activo">
+            <div class="card-top">
+              <div class="service-icon-box">
+                <span class="service-icon">{{ s.icono || '🧺' }}</span>
+              </div>
+              <div class="card-meta">
+                <span class="badge-cat">{{ s.categoria || 'General' }}</span>
+                @if (!s.activo) {
+                  <span class="badge-inactive">Inactivo</span>
+                }
+              </div>
+            </div>
+
+            <div class="card-main">
+              <h3 class="service-title">{{ s.nombre }}</h3>
+              <p class="service-desc">{{ s.descripcion || 'Servicio complementario para estudiantes y residentes.' }}</p>
+            </div>
+
+            <div class="card-bottom">
+              <div class="price-box">
+                <span class="price-currency">S/</span>
+                <span class="price-amount">{{ s.precio | number:'1.2-2' }}</span>
+                <span class="price-unit">/ {{ s.unidad || 'Unidad' }}</span>
+              </div>
+
+              <div class="card-actions">
+                @if (authService.isAdmin() || authService.isSupervisor()) {
+                  <button
+                    class="btn-icon btn-edit"
+                    title="Editar Servicio"
+                    (click)="abrirModalAdminEditar(s)"
+                  >
+                    ✏️
+                  </button>
+                  <button
+                    class="btn-icon btn-delete"
+                    title="Eliminar del Catálogo"
+                    (click)="eliminarServicio(s)"
+                  >
+                    🗑️
+                  </button>
+                }
+
+                <button
+                  class="btn btn-buy"
+                  [disabled]="!s.activo"
+                  (click)="abrirModalCompra(s)"
+                >
+                  🛒 Solicitar
+                </button>
+              </div>
+            </div>
+          </div>
+        }
+      </div>
+    }
+  }
+
+  <!-- PESTAÑA 2: SOLICITUDES / PEDIDOS (ABAC) -->
+  @if (tabActiva() === 'solicitudes') {
+    <div class="card table-card">
+      <div class="card-header">
+        <div class="table-info">
+          <h3>
+            {{ authService.isResidente() ? 'Mis Compras y Solicitudes de Servicios' : 'Gestión y Despacho de Servicios (ABAC)' }}
+          </h3>
+          <span class="badge-abac">
+            🔒 Filtrado por Permisos: {{ authService.isAdmin() ? 'Acceso Global (Todos los Residentes)' : 'Solo mis Solicitudes' }}
+          </span>
+        </div>
+        <button class="btn btn-refresh" (click)="cargarSolicitudes()">🔄 Recargar</button>
+      </div>
+
+      @if (compras().length === 0) {
+        <div class="empty-state">
+          <div class="empty-icon">📦</div>
+          <h3>No se registran solicitudes de servicios</h3>
+          <p>
+            {{ authService.isResidente() ? 'Aún no has solicitado ningún servicio extra.' : 'Los residentes aún no han realizado compras de servicios extras.' }}
+          </p>
+          @if (authService.isResidente()) {
+            <button class="btn btn-gold" (click)="setTab('catalogo')">Ver Catálogo y Pedir</button>
+          }
+        </div>
+      } @else {
+        <div class="table-responsive">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Código/ID</th>
+                <th>Servicio</th>
+                <th>Residente / Habitación</th>
+                <th>Fecha Pedido</th>
+                <th style="text-align: center;">Cantidad</th>
+                <th style="text-align: right;">Total (S/.)</th>
+                <th>Notas / Indicaciones</th>
+                <th style="text-align: center;">Estado</th>
+                @if (authService.isAdmin() || authService.isSupervisor()) {
+                  <th style="text-align: center; width: 180px;">Gestión</th>
+                }
+              </tr>
+            </thead>
+            <tbody>
+              @for (c of compras(); track c.id) {
+                <tr>
+                  <td><code>#SRV-{{ c.id }}</code></td>
+                  <td>
+                    <strong>{{ c.servicioNombre }}</strong>
+                  </td>
+                  <td>
+                    <div class="resident-cell">
+                      <span>👤 {{ c.huespedNombre }}</span>
+                      <small class="hab-badge">Hab. {{ c.habitacionNumero }}</small>
+                    </div>
+                  </td>
+                  <td>{{ c.fechaSolicitud || 'Hoy' }}</td>
+                  <td style="text-align: center;">
+                    <span class="qty-badge">{{ c.cantidad }}</span>
+                  </td>
+                  <td style="text-align: right;" class="total-cell">
+                    <strong>S/ {{ (c.total || 0) | number:'1.2-2' }}</strong>
+                  </td>
+                  <td class="notes-cell">
+                    {{ c.notas || '-' }}
+                  </td>
+                  <td style="text-align: center;">
+                    <span
+                      class="badge-status status-{{ c.estado?.toLowerCase() || 'pendiente' }}"
+                    >
+                      {{ c.estado }}
+                    </span>
+                  </td>
+
+                  @if (authService.isAdmin() || authService.isSupervisor()) {
+                    <td style="text-align: center;">
+                      <div class="admin-actions">
+                        @if (c.estado === 'PENDIENTE') {
+                          <button
+                            class="btn-status btn-process"
+                            title="Marcar En Proceso"
+                            (click)="cambiarEstadoSolicitud(c.id, 'EN_PROCESO')"
+                          >
+                            ⚙️ Atender
+                          </button>
+                        }
+                        @if (c.estado === 'EN_PROCESO' || c.estado === 'PENDIENTE') {
+                          <button
+                            class="btn-status btn-deliver"
+                            title="Marcar Entregado"
+                            (click)="cambiarEstadoSolicitud(c.id, 'ENTREGADO')"
+                          >
+                            ✅ Listo
+                          </button>
+                        }
+                        @if (c.estado !== 'CANCELADO' && c.estado !== 'ENTREGADO') {
+                          <button
+                            class="btn-status btn-cancel"
+                            title="Cancelar Solicitud"
+                            (click)="cambiarEstadoSolicitud(c.id, 'CANCELADO')"
+                          >
+                            ✕
+                          </button>
+                        }
+                      </div>
+                    </td>
+                  }
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+    </div>
+  }
+
+  <!-- MODAL SOLICITUD / COMPRA POR RESIDENTE -->
+  @if (mostrarModalCompra()) {
+    <div class="modal-backdrop" (click)="cerrarModalCompra()">
+      <div class="modal-content" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h3>🛒 Confirmar Solicitud de Servicio</h3>
+          <button class="close-btn" (click)="cerrarModalCompra()">✕</button>
+        </div>
+
+        <form [formGroup]="formCompra" (ngSubmit)="confirmarSolicitud()">
+          <div class="modal-body">
+            @if (servicioSeleccionado(); as s) {
+              <!-- Resumen del Servicio -->
+              <div class="selected-service-banner">
+                <div class="banner-icon">{{ s.icono || '🧺' }}</div>
+                <div class="banner-info">
+                  <h4>{{ s.nombre }}</h4>
+                  <p>{{ s.descripcion }}</p>
+                  <span class="banner-price">Precio unitario: <strong>S/ {{ s.precio | number:'1.2-2' }}</strong> por {{ s.unidad }}</span>
+                </div>
+              </div>
+            }
+
+            <div class="form-row mt-3">
+              <div class="form-group col">
+                <label class="form-label">Cantidad a Solicitar *</label>
+                <input
+                  type="number"
+                  min="1"
+                  max="50"
+                  formControlName="cantidad"
+                  class="form-input"
+                />
+              </div>
+
+              <div class="form-group col">
+                <label class="form-label">Habitación de Entrega *</label>
+                <input
+                  type="text"
+                  formControlName="habitacionNumero"
+                  class="form-input"
+                  placeholder="Ej. 101"
+                />
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Nombre del Residente / Solicitante *</label>
+              <input
+                type="text"
+                formControlName="huespedNombre"
+                class="form-input"
+              />
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Indicaciones o Notas Adicionales (Opcional)</label>
+              <textarea
+                formControlName="notas"
+                class="form-input"
+                rows="2"
+                placeholder="Ej. Dejar en recepción, recoger a las 4:00 PM, piso 2..."
+              ></textarea>
+            </div>
+
+            <!-- Total Calculado -->
+            <div class="total-summary-box">
+              <span>Total a Pagar / Cargar al Residente:</span>
+              <strong class="total-val">S/ {{ totalCompra() | number:'1.2-2' }}</strong>
+            </div>
+          </div>
+
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" (click)="cerrarModalCompra()">
+              Cancelar
+            </button>
+            <button type="submit" class="btn btn-gold" [disabled]="formCompra.invalid">
+              Confirmar y Enviar Pedido
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  }
+
+  <!-- MODAL ADMIN: CREAR / EDITAR SERVICIO EN EL CATÁLOGO -->
+  @if (mostrarModalAdmin()) {
+    <div class="modal-backdrop" (click)="cerrarModalAdmin()">
+      <div class="modal-content" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h3>{{ editandoServicioId() ? '✏️ Editar Servicio del Catálogo' : '➕ Añadir Servicio al Catálogo' }}</h3>
+          <button class="close-btn" (click)="cerrarModalAdmin()">✕</button>
+        </div>
+
+        <form [formGroup]="formAdmin" (ngSubmit)="guardarServicioAdmin()">
+          <div class="modal-body">
+            <!-- Icon Picker -->
+            <div class="form-group">
+              <label class="form-label">Ícono del Servicio</label>
+              <div class="icon-picker">
+                @for (ico of iconosDisponibles; track ico) {
+                  <button
+                    type="button"
+                    class="ico-choice"
+                    [class.selected]="formAdmin.get('icono')?.value === ico"
+                    (click)="seleccionarIconoAdmin(ico)"
+                  >
+                    {{ ico }}
+                  </button>
+                }
+              </div>
+            </div>
+
+            <!-- Nombre -->
+            <div class="form-group">
+              <label class="form-label">Nombre del Servicio *</label>
+              <input
+                type="text"
+                formControlName="nombre"
+                class="form-input"
+                placeholder="Ej. Lavandería Completa, Alquiler Microondas..."
+              />
+            </div>
+
+            <!-- Categoría, Unidad y Precio -->
+            <div class="form-row">
+              <div class="form-group col">
+                <label class="form-label">Categoría *</label>
+                <select formControlName="categoria" class="form-input">
+                  @for (cat of categoriasDisponibles; track cat) {
+                    <option [value]="cat">{{ cat }}</option>
+                  }
+                </select>
+              </div>
+
+              <div class="form-group col">
+                <label class="form-label">Unidad de Medida *</label>
+                <select formControlName="unidad" class="form-input">
+                  @for (u of unidadesDisponibles; track u) {
+                    <option [value]="u">{{ u }}</option>
+                  }
+                </select>
+              </div>
+
+              <div class="form-group col">
+                <label class="form-label">Precio en Soles (S/.) *</label>
+                <input
+                  type="number"
+                  step="0.50"
+                  min="0.01"
+                  formControlName="precio"
+                  class="form-input"
+                />
+              </div>
+            </div>
+
+            <!-- Descripción -->
+            <div class="form-group">
+              <label class="form-label">Descripción del Servicio</label>
+              <textarea
+                formControlName="descripcion"
+                class="form-input"
+                rows="3"
+                placeholder="Explica qué incluye el servicio y detalles para el estudiante..."
+              ></textarea>
+            </div>
+
+            <!-- Checkbox Activo -->
+            <div class="form-group checkbox-group">
+              <label class="checkbox-label">
+                <input type="checkbox" formControlName="activo" />
+                <span>Servicio Activo en el Catálogo de Oasis</span>
+              </label>
+            </div>
+          </div>
+
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" (click)="cerrarModalAdmin()">
+              Cancelar
+            </button>
+            <button type="submit" class="btn btn-gold" [disabled]="formAdmin.invalid">
+              💾 {{ editandoServicioId() ? 'Actualizar Catálogo' : 'Guardar en Catálogo' }}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  }
+</div>

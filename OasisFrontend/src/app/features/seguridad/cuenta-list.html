@@ -1,0 +1,184 @@
+<div class="cuenta-container">
+  <div class="header-section">
+    <div>
+      <h1 class="page-title">🔐 Usuarios & Credenciales del Sistema</h1>
+      <p class="page-subtitle">
+        Panel exclusivo para Administradores: Gestión de cuentas, contraseñas base y accesos de residentes y personal.
+      </p>
+    </div>
+  </div>
+
+  @if (mensajeExito()) {
+    <div class="alert alert-success">
+      <span>✅ {{ mensajeExito() }}</span>
+    </div>
+  }
+
+  <!-- KPIs de Resumen -->
+  <div class="kpi-grid">
+    <div class="kpi-card">
+      <span class="kpi-icon">👥</span>
+      <div class="kpi-info">
+        <span class="kpi-value">{{ totalCuentas() }}</span>
+        <span class="kpi-label">Cuentas Registradas</span>
+      </div>
+    </div>
+    <div class="kpi-card kpi-residentes">
+      <span class="kpi-icon">🎓</span>
+      <div class="kpi-info">
+        <span class="kpi-value">{{ totalResidentes() }}</span>
+        <span class="kpi-label">Residentes con Acceso</span>
+      </div>
+    </div>
+    <div class="kpi-card kpi-activos">
+      <span class="kpi-icon">🟢</span>
+      <div class="kpi-info">
+        <span class="kpi-value">{{ totalActivos() }}</span>
+        <span class="kpi-label">Cuentas Activas</span>
+      </div>
+    </div>
+    <div class="kpi-card kpi-info-box">
+      <span class="kpi-icon">🔑</span>
+      <div class="kpi-info">
+        <span class="kpi-value">123456</span>
+        <span class="kpi-label">Contraseña Base Inicial</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Barra de Filtros -->
+  <div class="filter-bar">
+    <div class="search-input-wrapper">
+      <span class="search-icon">🔍</span>
+      <input
+        type="text"
+        class="form-control search-input"
+        placeholder="Buscar por usuario (DNI), nombre completo o documento..."
+        [ngModel]="filtroTexto()"
+        (ngModelChange)="filtroTexto.set($event)"
+      />
+    </div>
+
+    <div class="filter-actions">
+      <div class="btn-group">
+        <button
+          class="btn-filter"
+          [class.active]="filtroRol() === 'TODOS'"
+          (click)="filtroRol.set('TODOS')"
+        >
+          Todos
+        </button>
+        <button
+          class="btn-filter"
+          [class.active]="filtroRol() === 'RESIDENTES'"
+          (click)="filtroRol.set('RESIDENTES')"
+        >
+          Residentes
+        </button>
+        <button
+          class="btn-filter"
+          [class.active]="filtroRol() === 'STAFF'"
+          (click)="filtroRol.set('STAFF')"
+        >
+          Personal / Staff
+        </button>
+      </div>
+
+      <button class="btn btn-secondary" (click)="cargarCuentas()">
+        🔄 Refrescar
+      </button>
+    </div>
+  </div>
+
+  <!-- Tabla de Cuentas -->
+  <div class="table-container">
+    @if (cargando()) {
+      <div class="loading-state">
+        <div class="spinner"></div>
+        <p>Cargando directorio de credenciales...</p>
+      </div>
+    } @else if (cuentasFiltradas().length === 0) {
+      <div class="empty-state">
+        <p>No se encontraron cuentas con los criterios de búsqueda seleccionados.</p>
+      </div>
+    } @else {
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Usuario / Identificador</th>
+            <th>Nombre del Titular</th>
+            <th>Rol del Sistema</th>
+            <th>Contraseña Base / Inicial</th>
+            <th>Estado</th>
+            <th class="text-right">Acciones de Soporte</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (c of cuentasFiltradas(); track c.id) {
+            <tr>
+              <td>
+                <div class="user-badge-cell">
+                  <span class="user-icon">{{ c.rol.includes('RESIDENTE') ? '👤' : '🛡️' }}</span>
+                  <strong class="user-name">{{ c.username }}</strong>
+                </div>
+              </td>
+              <td>{{ c.nombreCompleto || 'Personal del Sistema' }}</td>
+              <td>
+                <span class="badge" [ngClass]="{
+                  'badge-admin': c.rol.includes('ADMIN'),
+                  'badge-staff': c.rol.includes('SUPERVISOR') || c.rol.includes('RECEPCION'),
+                  'badge-residente': c.rol.includes('RESIDENTE')
+                }">
+                  {{ c.rol.replace('ROLE_', '') }}
+                </span>
+              </td>
+              <td>
+                <div class="password-box">
+                  @if (verPasswordMap()[c.id]) {
+                    <code class="password-code">{{ c.passwordInicial || '123456' }}</code>
+                  } @else {
+                    <span class="password-dots">••••••••</span>
+                  }
+                  <button
+                    type="button"
+                    class="btn-icon"
+                    (click)="toggleVerPassword(c.id)"
+                    [title]="verPasswordMap()[c.id] ? 'Ocultar' : 'Revelar contraseña'"
+                  >
+                    {{ verPasswordMap()[c.id] ? '👁️‍🗨️' : '👁️' }}
+                  </button>
+                </div>
+              </td>
+              <td>
+                <span class="status-indicator" [class.status-active]="c.activo" [class.status-inactive]="!c.activo">
+                  <span class="dot"></span>
+                  {{ c.activo ? 'Activa' : 'Inactiva' }}
+                </span>
+              </td>
+              <td class="text-right">
+                <div class="action-buttons">
+                  <button
+                    class="btn-action btn-reset"
+                    (click)="resetPassword(c)"
+                    title="Restablece la contraseña a la clave base 123456"
+                  >
+                    🔑 Restablecer
+                  </button>
+                  <button
+                    class="btn-action"
+                    [class.btn-deactivate]="c.activo"
+                    [class.btn-activate]="!c.activo"
+                    (click)="toggleActivo(c)"
+                    [title]="c.activo ? 'Desactivar acceso' : 'Habilitar acceso'"
+                  >
+                    {{ c.activo ? '🚫 Suspender' : '✅ Activar' }}
+                  </button>
+                </div>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    }
+  </div>
+</div>

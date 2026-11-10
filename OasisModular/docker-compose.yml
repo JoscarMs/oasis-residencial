@@ -1,0 +1,49 @@
+﻿name: oasis-monolith
+
+services:
+  oracle:
+    image: gvenzl/oracle-free:23-slim
+    container_name: bomerp-oracle
+    restart: unless-stopped
+    ports:
+      - "1521:1521"
+    environment:
+      ORACLE_PASSWORD: 123456
+      APP_USER: BOMERP_APP
+      APP_USER_PASSWORD: 123456
+    volumes:
+      - oracle-data:/opt/oracle/oradata
+    healthcheck:
+      test: ["CMD", "healthcheck.sh"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 60s
+    networks:
+      - oasis-net
+
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: oasis-backend
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_PROFILES_ACTIVE: dev
+      SPRING_DATASOURCE_URL: jdbc:oracle:thin:@oracle:1521/FREEPDB1
+      SPRING_DATASOURCE_USERNAME: BOMERP_APP
+      SPRING_DATASOURCE_PASSWORD: 123456
+    depends_on:
+      oracle:
+        condition: service_healthy
+    networks:
+      - oasis-net
+
+volumes:
+  oracle-data:
+
+networks:
+  oasis-net:
+    driver: bridge

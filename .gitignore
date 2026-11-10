@@ -1,0 +1,58 @@
+# ==============================================================================
+# GITIGNORE GLOBAL - PROYECTO OASIS HEREDITAS
+# ==============================================================================
+
+# Node / Angular Frontend
+**/node_modules/
+**/.angular/
+**/dist/
+**/.npm/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Java / Maven Backend
+**/target/
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+release.properties
+dependency-reduced-pom.xml
+buildNumber.properties
+.mvn/timing.properties
+.mvn/wrapper/maven-wrapper.jar
+
+# Entornos y logs
+*.log
+*.log.*
+logs/
+*.pid
+*.seed
+*.pid.lock
+
+# IDEs y Editores
+.idea/
+*.iml
+.vscode/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+.classpath
+.project
+.settings/
+
+# Bases de datos y volumenes locales
+oracle-data/
+*.db
+*.h2.db
+oasisdev.mv.db
+oasisdev.trace.db
+
+# Sistema Operativo
+.DS_Store
+Thumbs.db
+ehthumbs.db
+[Dd]esktop.ini

@@ -1,0 +1,85 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 160" width="100%" height="100%">
+  <defs>
+    <linearGradient id="l3_top" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FBBF24" />
+      <stop offset="100%" stop-color="#F59E0B" />
+    </linearGradient>
+    <linearGradient id="l3_left" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1E40AF" />
+      <stop offset="100%" stop-color="#1E293B" />
+    </linearGradient>
+    <linearGradient id="l3_right" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#3B82F6" />
+      <stop offset="100%" stop-color="#1D4ED8" />
+    </linearGradient>
+    <filter id="l3_shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="4" stdDeviation="5" flood-color="#1E3A8A" flood-opacity="0.25" />
+    </filter>
+  </defs>
+
+  <!-- ISOTIPO: CUBO ISOMÉTRICO (DADO DE JUEGOS + HABITACIÓN MODULAR) -->
+  <g transform="translate(30, 15)" filter="url(#l3_shadow)">
+    <!-- Aura / Sol Circular de Fondo -->
+    <circle cx="65" cy="65" r="54" fill="#EFF6FF" stroke="#DBEAFE" stroke-width="2" />
+
+    <!-- Cara Superior del Cubo (Terraza / Techo / Cara del Dado con puntos dorados) -->
+    <polygon points="65,22 108,46 65,70 22,46" fill="url(#l3_top)" />
+    <!-- Puntos dorados superiores (evocando el dado lúdico y luces de terraza) -->
+    <circle cx="45" cy="40" r="3.2" fill="#78350F" opacity="0.7" />
+    <circle cx="65" cy="46" r="3.8" fill="#78350F" opacity="0.8" />
+    <circle cx="85" cy="52" r="3.2" fill="#78350F" opacity="0.7" />
+
+    <!-- Cara Izquierda del Cubo (Fachada Nocturna / Habitaciones) -->
+    <polygon points="22,46 65,70 65,118 22,94" fill="url(#l3_left)" />
+    <!-- Ventanas/Pips del dado en la cara izquierda -->
+    <rect x="34" y="60" width="7" height="9" rx="1.5" fill="#FDE047" />
+    <rect x="47" y="67" width="7" height="9" rx="1.5" fill="#FDE047" />
+    <rect x="34" y="78" width="7" height="9" rx="1.5" fill="#FDE047" />
+    <rect x="47" y="85" width="7" height="9" rx="1.5" fill="#FDE047" />
+
+    <!-- Cara Derecha del Cubo (Fachada Iluminada) -->
+    <polygon points="65,70 108,46 108,94 65,118" fill="url(#l3_right)" />
+    <!-- Ventanas/Pips cara derecha -->
+    <rect x="76" y="67" width="7" height="9" rx="1.5" fill="#FFFFFF" />
+    <rect x="89" y="60" width="7" height="9" rx="1.5" fill="#FFFFFF" />
+    <rect x="76" y="85" width="7" height="9" rx="1.5" fill="#FFFFFF" />
+    <rect x="89" y="78" width="7" height="9" rx="1.5" fill="#FFFFFF" />
+
+    <!-- Palmera estilizada vector que emerge de la azotea (Oasis) -->
+    <path d="M 65,34 Q 63,16 50,14 C 58,16 64,22 65,34 Z" fill="#047857" />
+    <path d="M 65,34 Q 67,16 80,14 C 72,16 66,22 65,34 Z" fill="#059669" />
+    <path d="M 65,34 Q 65,10 65,8 Q 65,18 65,34 Z" stroke="#10B981" stroke-width="2.5" fill="none" stroke-linecap="round" />
+  </g>
+
+  <!-- LOGOTIPO / TIPOGRAFÍA DERECHA -->
+  <g transform="translate(175, 42)">
+    <text x="0" y="32" font-family="'Montserrat', 'Poppins', 'Inter', sans-serif" font-size="36" font-weight="900" letter-spacing="2" fill="#1E293B">
+      OASIS
+    </text>
+    <text x="145" y="32" font-family="'Montserrat', 'Poppins', 'Inter', sans-serif" font-size="36" font-weight="400" letter-spacing="2" fill="#2563EB">
+      HEREDITAS
+    </text>
+
+    <!-- Línea de acento lúdica con bloques de color -->
+    <g transform="translate(0, 44)">
+      <rect x="0" y="0" width="60" height="3" rx="1.5" fill="#F59E0B" />
+      <rect x="68" y="0" width="30" height="3" rx="1.5" fill="#3B82F6" />
+      <rect x="106" y="0" width="180" height="3" rx="1.5" fill="#E2E8F0" />
+    </g>
+
+    <!-- SUBTÍTULO -->
+    <text x="0" y="66" font-family="'Inter', sans-serif" font-size="11" font-weight="700" letter-spacing="2" fill="#0F172A">
+      RESIDENCIA UNIVERSITARIA MODULAR &amp; VIDA JOVEN
+    </text>
+    <text x="0" y="82" font-family="'Inter', sans-serif" font-size="9" font-weight="500" letter-spacing="1.2" fill="#64748B">
+      ESPACIOS PARA ESTUDIAR, CONVIVIR, COMPARTIR Y CRECER
+    </text>
+
+    <!-- Tags conceptuales -->
+    <g transform="translate(0, 94)">
+      <text x="0" y="0" font-family="'Inter', sans-serif" font-size="8.5" font-weight="700" fill="#2563EB">
+        🎲 VIERNES DE JUEGOS  •  🍿 NOCHES DE CINE  •  🍳 COCINA &amp; AMISTAD
+      </text>
+    </g>
+  </g>
+</svg>

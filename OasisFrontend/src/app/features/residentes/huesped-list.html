@@ -1,0 +1,234 @@
+<div class="page-container">
+  <div class="page-header">
+    <div>
+      <div class="breadcrumb">Módulo Residentes</div>
+      <h2 class="page-title">Padrón de Huéspedes y Residentes</h2>
+      <p class="page-desc">
+        Administración y registro de estudiantes, egresados y residentes de OASIS. Propietario: José Carlos Mena Sarmiento.
+      </p>
+    </div>
+    @if (authService.isAdmin() || authService.isSupervisor() || authService.isRecepcionista()) {
+      <button type="button" class="btn btn-primary" (click)="abrirModalNuevo()">
+        <span class="btn-icon">➕</span> Nuevo Residente
+      </button>
+    }
+  </div>
+
+  @if (successMessage()) {
+    <div class="alert alert-success">
+      <span>✅</span> {{ successMessage() }}
+    </div>
+  }
+
+  @if (error()) {
+    <div class="alert alert-danger">
+      <span>⚠️</span> {{ error() }}
+    </div>
+  }
+
+  <!-- Barra de Búsqueda y Filtros -->
+  <div class="toolbar">
+    <div class="search-box">
+      <span class="search-icon">🔍</span>
+      <input
+        type="text"
+        placeholder="Buscar por nombre, documento (DNI), email o perfil..."
+        [ngModel]="searchTerm()"
+        (ngModelChange)="searchTerm.set($event)"
+      />
+    </div>
+    <div class="stats-badge">
+      Total Registrados: <strong>{{ filteredHuespedes().length }}</strong>
+    </div>
+  </div>
+
+  @if (loading()) {
+    <div class="loading-state">
+      <div class="spinner"></div>
+      <p>Cargando padrón de residentes...</p>
+    </div>
+  } @else {
+    <div class="table-card">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Residente</th>
+            <th>Documento</th>
+            <th>Contacto</th>
+            <th>Perfil</th>
+            <th>Condición</th>
+            <th>Apoderado</th>
+            @if (authService.isAdmin() || authService.isSupervisor()) {
+              <th class="text-right">Acciones</th>
+            }
+          </tr>
+        </thead>
+        <tbody>
+          @for (h of filteredHuespedes(); track h.id) {
+            <tr>
+              <td class="cell-id">#{{ h.id }}</td>
+              <td>
+                <div class="user-cell">
+                  <div class="avatar">{{ h.nombreCompleto.charAt(0).toUpperCase() }}</div>
+                  <div>
+                    <div class="user-fullname">{{ h.nombreCompleto }}</div>
+                    <div class="user-subtext">{{ h.email }}</div>
+                  </div>
+                </div>
+              </td>
+              <td>
+                <span class="doc-badge">{{ h.tipoDocumento || 'DNI' }}: {{ h.numeroDocumento }}</span>
+              </td>
+              <td>
+                <div class="contact-cell">
+                  <span>📞 {{ h.telefono || 'Sin teléfono' }}</span>
+                </div>
+              </td>
+              <td>
+                <span class="badge" [class.badge-student]="h.perfil === 'ESTUDIANTE'" [class.badge-other]="h.perfil !== 'ESTUDIANTE'">
+                  {{ h.perfil || 'RESIDENTE' }}
+                </span>
+              </td>
+              <td>
+                @if (h.esMenorDeEdad) {
+                  <span class="badge badge-minor">Menor de Edad</span>
+                } @else {
+                  <span class="badge badge-adult">Mayor de Edad</span>
+                }
+              </td>
+              <td>
+                @if (h.esMenorDeEdad && h.nombreApoderado) {
+                  <div class="apoderado-info">
+                    <strong>{{ h.nombreApoderado }}</strong> ({{ h.parentesco || 'Tutor' }})
+                    <div class="apoderado-sub">Tel: {{ h.telefonoApoderado || 'N/A' }}</div>
+                  </div>
+                } @else {
+                  <span class="text-muted">—</span>
+                }
+              </td>
+              @if (authService.isAdmin() || authService.isSupervisor() || authService.isRecepcionista()) {
+                <td class="text-right actions-cell">
+                  <button class="btn-action btn-edit" title="Editar" (click)="abrirModalEditar(h)">✏️</button>
+                  @if (authService.isAdmin()) {
+                    <button class="btn-action btn-delete" title="Eliminar" (click)="eliminar(h)">🗑️</button>
+                  }
+                </td>
+              }
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="8" class="text-center empty-cell">
+                No se encontraron residentes con el criterio de búsqueda.
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</div>
+
+<!-- Modal Formulario Huésped -->
+@if (isModalOpen()) {
+  <div class="modal-backdrop" (click)="cerrarModal()">
+    <div class="modal-dialog" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3 class="modal-title">{{ isEditing() ? 'Editar Residente' : 'Registrar Nuevo Residente' }}</h3>
+        <button class="btn-close" (click)="cerrarModal()">✕</button>
+      </div>
+
+      <div class="modal-body">
+        <div class="form-grid">
+          <div class="form-group full-width">
+            <label>Nombre Completo (se completa con RENIEC al buscar el DNI)</label>
+            <input type="text" [(ngModel)]="formModel.nombreCompleto" placeholder="Se autocompleta con el DNI" />
+          </div>
+
+          <div class="form-group">
+            <label>Correo Electrónico (opcional)</label>
+            <input type="email" [(ngModel)]="formModel.email" placeholder="ejemplo@oasis.com" />
+          </div>
+
+          <div class="form-group">
+            <label>Teléfono Celular</label>
+            <input type="text" [(ngModel)]="formModel.telefono" placeholder="+51 987 654 321" />
+          </div>
+
+          <div class="form-group">
+            <label>Tipo de Documento</label>
+            <select [(ngModel)]="formModel.tipoDocumento">
+              <option value="DNI">DNI (Perú)</option>
+              <option value="RUC">RUC (SUNAT)</option>
+              <option value="PASAPORTE">Pasaporte</option>
+              <option value="CARNET_EXT">Carné de Extranjería</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>Número de Documento *</label>
+            <div style="display: flex; gap: 6px;">
+              <input type="text" style="flex: 1;" [(ngModel)]="formModel.numeroDocumento" placeholder="78945612" (keyup.enter)="buscarDocumento()" />
+              @if (formModel.tipoDocumento === 'DNI' || formModel.tipoDocumento === 'RUC') {
+                <button type="button" class="btn btn-secondary" [disabled]="buscandoDocumento()" (click)="buscarDocumento()">
+                  {{ buscandoDocumento() ? 'Buscando...' : '🔍 Buscar' }}
+                </button>
+              }
+            </div>
+            @if (mensajeBusqueda()) {
+              <small>{{ mensajeBusqueda() }}</small>
+            }
+          </div>
+
+          <div class="form-group">
+            <label>Perfil del Huésped</label>
+            <select [(ngModel)]="formModel.perfil">
+              <option value="ESTUDIANTE">Estudiante Universitario</option>
+              <option value="EGRESADO">Egresado</option>
+              <option value="PROFESIONAL">Profesional Joven</option>
+              <option value="FAMILIAR">Familiar / Visita</option>
+            </select>
+          </div>
+
+          <div class="form-group checkbox-group full-width">
+            <label class="checkbox-label">
+              <input type="checkbox" [(ngModel)]="formModel.esMenorDeEdad" />
+              <span>¿Es menor de edad? (Requiere datos de apoderado o tutor legal)</span>
+            </label>
+          </div>
+
+          @if (formModel.esMenorDeEdad) {
+            <div class="apoderado-fieldset full-width">
+              <h4>Datos del Apoderado / Tutor</h4>
+              <div class="form-grid">
+                <div class="form-group full-width">
+                  <label>Nombre del Apoderado</label>
+                  <input type="text" [(ngModel)]="formModel.nombreApoderado" placeholder="Ej: Roberto Pérez" />
+                </div>
+                <div class="form-group">
+                  <label>Teléfono del Apoderado</label>
+                  <input type="text" [(ngModel)]="formModel.telefonoApoderado" placeholder="+51 999 888 777" />
+                </div>
+                <div class="form-group">
+                  <label>DNI del Apoderado</label>
+                  <input type="text" [(ngModel)]="formModel.dniApoderado" placeholder="10293847" />
+                </div>
+                <div class="form-group full-width">
+                  <label>Parentesco</label>
+                  <input type="text" [(ngModel)]="formModel.parentesco" placeholder="Padre, Madre, Tío(a)..." />
+                </div>
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn btn-secondary" (click)="cerrarModal()">Cancelar</button>
+        <button class="btn btn-primary" (click)="guardar()">
+          {{ isEditing() ? 'Actualizar Residente' : 'Guardar Residente' }}
+        </button>
+      </div>
+    </div>
+  </div>
+}

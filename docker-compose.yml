@@ -1,0 +1,87 @@
+name: oasis-system
+
+services:
+  # Base de Datos Oracle Database 23c Free
+  oracle:
+    image: gvenzl/oracle-free:23-slim
+    container_name: oasis-oracle
+    restart: unless-stopped
+    ports:
+      - "1521:1521"
+    environment:
+      ORACLE_PASSWORD: "123456"
+      APP_USER: "BOMERP_APP"
+      APP_USER_PASSWORD: "123456"
+    volumes:
+      - oracle-data:/opt/oracle/oradata
+    healthcheck:
+      test: ["CMD", "healthcheck.sh"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 45s
+    networks:
+      - oasis-net
+
+  # Servidor de Identidad Keycloak 26 (OAuth2 / OIDC PKCE)
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.0.0
+    container_name: oasis-keycloak
+    restart: unless-stopped
+    command: start-dev --http-port=8080
+    ports:
+      - "38080:8080"
+    environment:
+      KEYCLOAK_ADMIN: "admin"
+      KEYCLOAK_ADMIN_PASSWORD: "admin123"
+    healthcheck:
+      test: ["CMD-SHELL", "exec 3<>/dev/tcp/127.0.0.1/8080;echo -e 'GET /health/ready HTTP/1.1\\r\\nHost: localhost\\r\\nConnection: close\\r\\n\\r\\n' >&3;grep -q '200 OK' <&3"]
+      interval: 10s
+      timeout: 5s
+      retries: 8
+      start_period: 30s
+    networks:
+      - oasis-net
+
+  # Backend Spring Boot 3 / Java 21
+  backend:
+    build:
+      context: ./OasisModular
+      dockerfile: Dockerfile
+    container_name: oasis-backend
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_PROFILES_ACTIVE: dev
+      SPRING_DATASOURCE_URL: jdbc:oracle:thin:@oracle:1521/FREEPDB1
+      SPRING_DATASOURCE_USERNAME: BOMERP_APP
+      SPRING_DATASOURCE_PASSWORD: "123456"
+      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI: http://keycloak:8080/realms/oasis
+      RENIEC_API_TOKEN: "sk_21338.mJbXANpbZ6idba5P32kodCOmMJTia5pS"
+    depends_on:
+      oracle:
+        condition: service_healthy
+    networks:
+      - oasis-net
+
+  # Frontend Angular 19 / Nginx
+  frontend:
+    build:
+      context: ./OasisFrontend
+      dockerfile: Dockerfile
+    container_name: oasis-frontend
+    restart: unless-stopped
+    ports:
+      - "4200:80"
+    depends_on:
+      - backend
+    networks:
+      - oasis-net
+
+volumes:
+  oracle-data:
+
+networks:
+  oasis-net:
+    driver: bridge

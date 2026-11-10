@@ -1,0 +1,222 @@
+<div class="conceptos-container">
+  <!-- Header de Página -->
+  <div class="page-header">
+    <div class="header-titles">
+      <div class="breadcrumb">
+        <a routerLink="/contratos/nuevo">Contratos</a>
+        <span class="sep">/</span>
+        <span>Plantillas y Filtros Rápidos</span>
+      </div>
+      <h2>⚙️ Gestión de Conceptos de Contrato</h2>
+      <p class="subtitle">
+        Administra las opciones y servicios sugeridos que se muestran como atajos al formalizar contratos en Residencia OASIS.
+      </p>
+    </div>
+    <div class="header-actions">
+      <a routerLink="/contratos/nuevo" class="btn btn-secondary">
+        ← Volver al Contrato
+      </a>
+      <button type="button" class="btn btn-gold" (click)="abrirModalCrear()">
+        ➕ Nuevo Concepto
+      </button>
+    </div>
+  </div>
+
+  <!-- Alertas de Feedback -->
+  @if (exito()) {
+    <div class="alert alert-success">
+      <span>✅ {{ exito() }}</span>
+    </div>
+  }
+  @if (error()) {
+    <div class="alert alert-danger">
+      <span>⚠️ {{ error() }}</span>
+    </div>
+  }
+
+  <!-- Tarjeta de Contenido Principal -->
+  <div class="card table-card">
+    <div class="card-header">
+      <div class="table-info">
+        <span class="badge-total">{{ conceptos().length }} Conceptos Registrados</span>
+        <span class="badge-active">
+          Plantillas activas para contratos
+        </span>
+      </div>
+      <button class="btn btn-refresh" (click)="cargarConceptos()" [disabled]="cargando()">
+        🔄 Recargar
+      </button>
+    </div>
+
+    @if (cargando()) {
+      <div class="loading-state">
+        <div class="spinner"></div>
+        <p>Cargando catálogo de conceptos...</p>
+      </div>
+    } @else if (conceptos().length === 0) {
+      <div class="empty-state">
+        <div class="empty-icon">🛡️</div>
+        <h3>No hay conceptos registrados</h3>
+        <p>Crea el primer concepto rápido para que los recepcionistas puedan agregarlo a los contratos.</p>
+        <button class="btn btn-gold" (click)="abrirModalCrear()">Crear Primer Concepto</button>
+      </div>
+    } @else {
+      <div class="table-responsive">
+        <table class="table">
+          <thead>
+            <tr>
+              <th style="width: 80px; text-align: center;">Ícono</th>
+              <th>Nombre del Concepto</th>
+              <th>Categoría</th>
+              <th>Descripción</th>
+              <th style="text-align: right;">Precio Sugerido</th>
+              <th style="text-align: center;">Estado</th>
+              <th style="text-align: center; width: 150px;">Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (c of conceptos(); track c.id) {
+              <tr [class.row-inactive]="!c.activo">
+                <td style="text-align: center;">
+                  <span class="icon-avatar">{{ c.icono || '🏷️' }}</span>
+                </td>
+                <td>
+                  <strong>{{ c.nombre }}</strong>
+                </td>
+                <td>
+                  <span class="badge-category badge-{{ c.categoria?.toLowerCase() || 'otro' }}">
+                    {{ c.categoria }}
+                  </span>
+                </td>
+                <td class="desc-cell">
+                  {{ c.descripcion || 'Sin descripción' }}
+                </td>
+                <td style="text-align: right;" class="price-cell">
+                  <strong>S/ {{ c.precioSugerido | number:'1.2-2' }}</strong>
+                </td>
+                <td style="text-align: center;">
+                  @if (c.activo) {
+                    <span class="badge-status status-active">Activo</span>
+                  } @else {
+                    <span class="badge-status status-inactive">Inactivo</span>
+                  }
+                </td>
+                <td style="text-align: center;">
+                  <div class="btn-group">
+                    <button class="btn-icon btn-edit" title="Editar Concepto" (click)="abrirModalEditar(c)">
+                      ✏️
+                    </button>
+                    <button class="btn-icon btn-delete" title="Eliminar Concepto" (click)="eliminar(c)">
+                      🗑️
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  </div>
+
+  <!-- MODAL CREAR / EDITAR CONCEPTO -->
+  @if (mostrarModal()) {
+    <div class="modal-backdrop" (click)="cerrarModal()">
+      <div class="modal-content" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h3>{{ editandoId() ? '✏️ Editar Concepto de Contrato' : '➕ Nuevo Concepto de Contrato' }}</h3>
+          <button class="close-btn" (click)="cerrarModal()">✕</button>
+        </div>
+
+        <form [formGroup]="form" (ngSubmit)="guardar()">
+          <div class="modal-body">
+            <!-- Icon Picker -->
+            <div class="form-group">
+              <label class="form-label">Ícono Representativo</label>
+              <div class="icon-picker">
+                @for (ico of iconosDisponibles; track ico) {
+                  <button
+                    type="button"
+                    class="ico-choice"
+                    [class.selected]="form.get('icono')?.value === ico"
+                    (click)="seleccionarIcono(ico)"
+                  >
+                    {{ ico }}
+                  </button>
+                }
+              </div>
+            </div>
+
+            <!-- Nombre -->
+            <div class="form-group">
+              <label class="form-label">Nombre del Concepto *</label>
+              <input
+                type="text"
+                formControlName="nombre"
+                class="form-input"
+                placeholder="Ej. Garantía Habitacional, Internet Fibra..."
+              />
+              @if (form.get('nombre')?.touched && form.get('nombre')?.invalid) {
+                <span class="field-error">El nombre es obligatorio (máx. 100 carácteres).</span>
+              }
+            </div>
+
+            <!-- Categoría y Precio Sugerido en 2 columnas -->
+            <div class="form-row">
+              <div class="form-group col">
+                <label class="form-label">Categoría *</label>
+                <select formControlName="categoria" class="form-input">
+                  @for (cat of categoriasDisponibles; track cat) {
+                    <option [value]="cat">{{ cat }}</option>
+                  }
+                </select>
+              </div>
+
+              <div class="form-group col">
+                <label class="form-label">Precio Sugerido (S/.) *</label>
+                <div class="input-prefix">
+                  <span class="prefix">S/</span>
+                  <input
+                    type="number"
+                    step="0.50"
+                    min="0.01"
+                    formControlName="precioSugerido"
+                    class="form-input"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <!-- Descripción -->
+            <div class="form-group">
+              <label class="form-label">Descripción Detallada (Opcional)</label>
+              <textarea
+                formControlName="descripcion"
+                class="form-input"
+                rows="3"
+                placeholder="Detalle o condiciones que se aplicarán al contrato..."
+              ></textarea>
+            </div>
+
+            <!-- Estado Activo -->
+            <div class="form-group checkbox-group">
+              <label class="checkbox-label">
+                <input type="checkbox" formControlName="activo" />
+                <span>Concepto Activo (visible en el formulario de formalizar contratos)</span>
+              </label>
+            </div>
+          </div>
+
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" (click)="cerrarModal()">
+              Cancelar
+            </button>
+            <button type="submit" class="btn btn-gold" [disabled]="form.invalid">
+              💾 {{ editandoId() ? 'Actualizar Concepto' : 'Crear Concepto' }}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  }
+</div>

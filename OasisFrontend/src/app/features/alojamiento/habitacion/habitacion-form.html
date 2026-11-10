@@ -1,0 +1,145 @@
+<div class="page-container form-container">
+  <div class="page-header">
+    <div>
+      <div class="breadcrumb">Alojamiento / Inventario Físico</div>
+      <h2 class="page-title">{{ id() ? 'Editar Habitación Física' : 'Nueva Habitación Física' }}</h2>
+      <p class="page-desc">Gestione los datos de la habitación y su vinculación obligatoria con un Tipo de Habitación (Entidad Padre).</p>
+    </div>
+    <a routerLink="/alojamiento/habitaciones" class="btn btn-outline">
+      ← Volver al Inventario
+    </a>
+  </div>
+
+  @if (error()) {
+    <div class="alert alert-danger">
+      <span class="alert-icon">⚠️</span>
+      <div class="alert-content">{{ error() }}</div>
+      <button class="alert-close" (click)="error.set(null)">✕</button>
+    </div>
+  }
+
+  <div class="card form-card">
+    <form [formGroup]="form" (ngSubmit)="guardar()">
+      <div class="form-row">
+        <div class="form-group col-half">
+          <label for="numero">Número de Habitación <span class="required">*</span></label>
+          <input
+            id="numero"
+            type="text"
+            formControlName="numero"
+            class="form-control"
+            placeholder="Ej. 101, 204B, 305"
+          />
+          @if (form.controls.numero.invalid && form.controls.numero.touched) {
+            <p class="field-error">El número de habitación es obligatorio (máx. 20 caracteres).</p>
+          }
+        </div>
+
+        <div class="form-group col-half">
+          <label for="piso">Piso de Ubicación <span class="required">*</span></label>
+          <input
+            id="piso"
+            type="number"
+            min="1"
+            max="20"
+            formControlName="piso"
+            class="form-control"
+          />
+          @if (form.controls.piso.invalid && form.controls.piso.touched) {
+            <p class="field-error">El piso debe ser un valor numérico entre 1 y 20.</p>
+          }
+        </div>
+      </div>
+
+      <!-- Campo dependiente <select> con [ngValue] según criterio de evaluación S08 -->
+      <div class="form-group">
+        <label for="tipoHabitacionId">
+          Tipo de Habitación (Entidad Padre Vinculada) <span class="required">*</span>
+        </label>
+        <select
+          id="tipoHabitacionId"
+          formControlName="tipoHabitacionId"
+          class="form-control"
+          (change)="onTipoHabitacionChange(form.controls.tipoHabitacionId.value)"
+        >
+          <option [ngValue]="0" disabled>-- Seleccione un Tipo de Habitación del Catálogo --</option>
+          @for (tipo of tiposHabitacion(); track tipo.id) {
+            <option [ngValue]="tipo.id">
+              {{ tipo.nombre }} — (Tarifa base: S/ {{ tipo.precioBase }} | Capacidad: {{ tipo.capacidadPersonas }} pers.)
+            </option>
+          }
+        </select>
+        @if (form.controls.tipoHabitacionId.invalid && form.controls.tipoHabitacionId.touched) {
+          <p class="field-error">Debe seleccionar un tipo de habitación válido del catálogo.</p>
+        }
+        <small class="field-hint">
+          🔗 Esta selección establece la clave foránea requerida en la base de datos relacional.
+        </small>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group col-half">
+          <label for="precio">Precio Operativo Asignado (S/.) <span class="required">*</span></label>
+          <input
+            id="precio"
+            type="number"
+            step="0.01"
+            formControlName="precio"
+            class="form-control"
+            placeholder="0.00"
+          />
+          @if (form.controls.precio.invalid && form.controls.precio.touched) {
+            <p class="field-error">El precio mensual debe ser un valor mayor a cero.</p>
+          }
+        </div>
+
+        <div class="form-group col-half">
+          <label for="estado">Estado Operativo <span class="required">*</span></label>
+          <select id="estado" formControlName="estado" class="form-control">
+            <option value="DISPONIBLE">DISPONIBLE</option>
+            <option value="OCUPADO">OCUPADO</option>
+            <option value="MANTENIMIENTO">MANTENIMIENTO</option>
+          </select>
+          @if (form.controls.estado.invalid && form.controls.estado.touched) {
+            <p class="field-error">El estado operativo es obligatorio.</p>
+          }
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group col-half">
+          <label for="amoblada">¿Habitación Amoblada? <span class="required">*</span></label>
+          <select id="amoblada" formControlName="amoblada" class="form-control">
+            <option [ngValue]="true">🛋️ Sí, Incluye Amoblado</option>
+            <option [ngValue]="false">🚪 No (Sin amoblar)</option>
+          </select>
+          @if (form.controls.amoblada.invalid && form.controls.amoblada.touched) {
+            <p class="field-error">Debe especificar si la habitación está amoblada.</p>
+          }
+        </div>
+
+        <div class="form-group col-half">
+          <label for="tipoBano">Tipo de Baño <span class="required">*</span></label>
+          <select id="tipoBano" formControlName="tipoBano" class="form-control">
+            <option value="COMPARTIDO">🚿 Baño Compartido</option>
+            <option value="PRIVADO">✨ Baño Privado en Habitación</option>
+          </select>
+          @if (form.controls.tipoBano.invalid && form.controls.tipoBano.touched) {
+            <p class="field-error">El tipo de baño es obligatorio (PRIVADO o COMPARTIDO).</p>
+          }
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <a routerLink="/alojamiento/habitaciones" class="btn btn-outline">Cancelar</a>
+        <button type="submit" [disabled]="guardando()" class="btn btn-primary">
+          @if (guardando()) {
+            <span>Guardando...</span>
+          } @else {
+            <span>💾 {{ id() ? 'Actualizar Habitación' : 'Guardar Habitación' }}</span>
+          }
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

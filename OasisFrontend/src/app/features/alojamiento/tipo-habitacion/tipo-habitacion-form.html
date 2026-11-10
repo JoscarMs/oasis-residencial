@@ -1,0 +1,94 @@
+<div class="page-container form-container">
+  <div class="page-header">
+    <div>
+      <div class="breadcrumb">Alojamiento / Catálogo</div>
+      <h2 class="page-title">{{ id() ? 'Editar Tipo de Habitación' : 'Nuevo Tipo de Habitación' }}</h2>
+      <p class="page-desc">Complete los campos según las tarifas y especificaciones de capacidad de la Residencia OASIS.</p>
+    </div>
+    <a routerLink="/alojamiento/tipos-habitacion" class="btn btn-outline">
+      ← Volver al Listado
+    </a>
+  </div>
+
+  @if (error()) {
+    <div class="alert alert-danger">
+      <span class="alert-icon">⚠️</span>
+      <div class="alert-content">{{ error() }}</div>
+    </div>
+  }
+
+  <div class="card form-card">
+    <form [formGroup]="form" (ngSubmit)="guardar()">
+      <div class="form-group">
+        <label for="nombre">Nombre del Tipo de Habitación <span class="required">*</span></label>
+        <input
+          id="nombre"
+          type="text"
+          formControlName="nombre"
+          class="form-control"
+          placeholder="Ej. Individual Estándar, Doble Compartida, Suite"
+        />
+        @if (form.controls.nombre.invalid && form.controls.nombre.touched) {
+          <p class="field-error">El nombre es obligatorio (máximo 100 caracteres).</p>
+        }
+      </div>
+
+      <div class="form-row">
+        <div class="form-group col-half">
+          <label for="precioBase">Precio Base Mensual (S/.) <span class="required">*</span></label>
+          <input
+            id="precioBase"
+            type="number"
+            step="0.01"
+            formControlName="precioBase"
+            class="form-control"
+            placeholder="0.00"
+          />
+          @if (form.controls.precioBase.invalid && form.controls.precioBase.touched) {
+            <p class="field-error">El precio debe ser un monto positivo mayor a 0.</p>
+          }
+        </div>
+
+        <div class="form-group col-half">
+          <label for="capacidadPersonas">Capacidad de Huéspedes <span class="required">*</span></label>
+          <input
+            id="capacidadPersonas"
+            type="number"
+            min="1"
+            max="10"
+            formControlName="capacidadPersonas"
+            class="form-control"
+          />
+          @if (form.controls.capacidadPersonas.invalid && form.controls.capacidadPersonas.touched) {
+            <p class="field-error">La capacidad mínima requerida es de 1 persona.</p>
+          }
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="descripcion">Descripción y Mobiliario</label>
+        <textarea
+          id="descripcion"
+          rows="3"
+          formControlName="descripcion"
+          class="form-control"
+          placeholder="Detalle mobiliario incluido, baño privado/compartido, frigobar, escritorio, etc."
+        ></textarea>
+        @if (form.controls.descripcion.invalid && form.controls.descripcion.touched) {
+          <p class="field-error">La descripción no puede exceder 255 caracteres.</p>
+        }
+      </div>
+
+      <div class="form-actions">
+        <a routerLink="/alojamiento/tipos-habitacion" class="btn btn-outline">Cancelar</a>
+        <button type="submit" [disabled]="guardando()" class="btn btn-primary">
+          @if (guardando()) {
+            <span>Guardando...</span>
+          } @else {
+            <span>💾 {{ id() ? 'Actualizar Tipo' : 'Guardar Tipo' }}</span>
+          }
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

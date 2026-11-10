@@ -1,0 +1,235 @@
+<div class="page-container">
+  <!-- Top Welcome Banner -->
+  <div class="resident-hero">
+    <div class="hero-left">
+      <span class="welcome-pill">Portal del Residente</span>
+      <h2 class="hero-title">¡Bienvenido(a), {{ authService.currentUser()?.nombre }}!</h2>
+      <p class="hero-subtitle">
+        Aquí puedes consultar la información de tu habitación asignada, compañeros de residencia, estado de mensualidad y reportar averías técnicas.
+      </p>
+    </div>
+    <div class="hero-right">
+      <button class="btn btn-warning" (click)="abrirReportarAveria()">
+        <span>🔧</span> Reportar Avería en mi Habitación
+      </button>
+    </div>
+  </div>
+
+  @if (successMessage()) {
+    <div class="alert alert-success">
+      <span>✅</span> {{ successMessage() }}
+    </div>
+  }
+
+  <!-- Room Visuals and Details Card -->
+  <div class="room-grid">
+    <div class="room-card-main">
+      <div class="room-image-wrap">
+        <img
+          src="https://images.unsplash.com/photo-1598928506311-c55ded91a20c?auto=format&fit=crop&w=800&q=80"
+          alt="Habitación Asignada"
+          class="room-photo"
+        />
+        <div class="room-status-badge">
+          <span>✓</span> HABITACIÓN ASIGNADA & ACTIVA
+        </div>
+      </div>
+
+      <div class="room-body">
+        <div class="room-header-row">
+          <div>
+            <span class="room-type-badge">Habitación Normal / Estándar</span>
+            <h3 class="room-number">Habitación {{ averiaModel.habitacionId }}</h3>
+          </div>
+          <div class="room-price-box">
+            <span class="price-val">$350.00</span>
+            <span class="price-unit">USD / mes</span>
+          </div>
+        </div>
+
+        <p class="room-desc">
+          Habitación individual totalmente amoblada con cama de plaza y media, escritorio de estudio, armario empotrado, baño privado y vista exterior hacia los jardines interiores de la residencia.
+        </p>
+
+        <div class="amenities-grid">
+          <div class="amenity-item">
+            <span class="amenity-icon">📶</span>
+            <div class="amenity-text">
+              <strong>Wi-Fi 5G Residencia</strong>
+              <span>SSID: OasisRes_Piso1</span>
+            </div>
+          </div>
+
+          <div class="amenity-item">
+            <span class="amenity-icon">❄️</span>
+            <div class="amenity-text">
+              <strong>Climatización</strong>
+              <span>Aire acondicionado & Calefactor</span>
+            </div>
+          </div>
+
+          <div class="amenity-item">
+            <span class="amenity-icon">🛡️</span>
+            <div class="amenity-text">
+              <strong>Seguridad 24/7</strong>
+              <span>Control biométrico y cámaras</span>
+            </div>
+          </div>
+
+          <div class="amenity-item">
+            <span class="amenity-icon">🧹</span>
+            <div class="amenity-text">
+              <strong>Servicio de Limpieza</strong>
+              <span>Áreas comunes y quincenal</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Side: Contract & Roommates Card -->
+    <div class="room-sidebar">
+      <div class="side-card">
+        <h4 class="card-heading">
+          <span>📑</span> Resumen de mi Contrato
+        </h4>
+        <div class="info-list">
+          <div class="info-row">
+            <span class="info-label">N° Contrato:</span>
+            <strong>CTR-2026-001</strong>
+          </div>
+          <div class="info-row">
+            <span class="info-label">Tipo:</span>
+            <span>Semestre Académico (6 meses)</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">Vigencia:</span>
+            <span>01/03/2026 – 31/08/2026</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">Estado:</span>
+            <span class="badge badge-active">VIGENTE</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">Garantía Depositada:</span>
+            <strong class="text-teal">$700.00 USD (2 Meses)</strong>
+          </div>
+        </div>
+      </div>
+
+      <div class="side-card">
+        <h4 class="card-heading">
+          <span>👥</span> Compañeros de Piso
+        </h4>
+        <div class="roommate-list">
+          @for (mate of roommates(); track mate.nombre) {
+            <div class="roommate-item">
+              <div class="mate-avatar">{{ mate.nombre.charAt(0) }}</div>
+              <div class="mate-details">
+                <strong>{{ mate.nombre }}</strong>
+                <span class="mate-career">{{ mate.carrera }}</span>
+                <span class="mate-email">{{ mate.email }}</span>
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Resident Payment History -->
+  <div class="section-card">
+    <div class="section-header">
+      <div>
+        <h3 class="section-title">
+          <span>💳</span> Mi Historial Personal de Pagos
+        </h3>
+        <p class="section-desc">
+          Transacciones registradas para tu contrato. Información protegida mediante control ABAC.
+        </p>
+      </div>
+    </div>
+
+    @if (loadingPagos()) {
+      <div class="loading-state">
+        <div class="spinner"></div>
+        <p>Cargando historial de pagos...</p>
+      </div>
+    } @else {
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>ID Transacción</th>
+              <th>Comprobante</th>
+              <th>Fecha de Pago</th>
+              <th>Método</th>
+              <th>Monto Pagado</th>
+              <th>Estado</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (p of misPagos(); track p.id) {
+              <tr>
+                <td class="cell-id">#{{ p.id }}</td>
+                <td><code>{{ p.numeroComprobante }}</code></td>
+                <td>{{ p.fechaPago }}</td>
+                <td><span class="method-tag">{{ p.metodoPago }}</span></td>
+                <td class="monto-cell">${{ (p.monto || 0).toLocaleString('en-US', { minimumFractionDigits: 2 }) }}</td>
+                <td><span class="badge badge-paid">✓ PAGADO</span></td>
+              </tr>
+            } @empty {
+              <tr>
+                <td colspan="6" class="empty-cell text-center">
+                  No se encontraron pagos registrados para tu cuenta.
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  </div>
+</div>
+
+<!-- Modal Reportar Avería -->
+@if (isAveriaModalOpen()) {
+  <div class="modal-backdrop" (click)="cerrarReportarAveria()">
+    <div class="modal-dialog" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3 class="modal-title">Reportar Avería en Habitación {{ averiaModel.habitacionId }}</h3>
+        <button class="btn-close" (click)="cerrarReportarAveria()">✕</button>
+      </div>
+
+      <div class="modal-body">
+        <div class="form-grid">
+          <div class="form-group full-width">
+            <label>Tipo de Problema *</label>
+            <select [(ngModel)]="averiaModel.tipoAveria">
+              <option value="Plomería / Sanitarios">Plomería (Grifo, ducha, inodoro, desagüe)</option>
+              <option value="Electricidad / Luces">Electricidad (Luces, enchufes, interruptor)</option>
+              <option value="Cerrajería / Puertas">Cerrajería (Chapa de puerta, llave trabada)</option>
+              <option value="Aire Acondicionado">Aire acondicionado / Calefacción</option>
+              <option value="Wi-Fi / Red">Conexión a Internet / Señal de Red</option>
+              <option value="Mobiliario">Mueble deteriorado o roto</option>
+            </select>
+          </div>
+
+          <div class="form-group full-width">
+            <label>Descripción del Problema *</label>
+            <textarea
+              rows="4"
+              [(ngModel)]="averiaModel.descripcion"
+              placeholder="Explica qué ocurrió para que el equipo de soporte acuda a solucionar tu inconveniente..."
+            ></textarea>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn btn-secondary" (click)="cerrarReportarAveria()">Cancelar</button>
+        <button class="btn btn-primary" (click)="enviarReporteAveria()">Enviar al Administrador</button>
+      </div>
+    </div>
+  </div>
+}

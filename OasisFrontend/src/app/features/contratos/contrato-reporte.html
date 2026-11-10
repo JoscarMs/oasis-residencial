@@ -1,0 +1,238 @@
+<div class="page-container">
+  <div class="page-header">
+    <div>
+      <div class="breadcrumb">Contratos / Consulta, Reporte y Transición de Estado</div>
+      <h2 class="page-title">Reporte Agregado de Contratos de Residencia</h2>
+      <p class="page-desc">Supervisión integral de contratos, cálculo de agregados, desglose línea por línea y transición de estado (anulación controlada).</p>
+    </div>
+    <a routerLink="/contratos/nuevo" class="btn btn-primary">
+      ➕ Formalizar Nuevo Contrato
+    </a>
+  </div>
+
+  @if (exito()) {
+    <div class="alert alert-success">
+      <span class="alert-icon">✅</span>
+      <div class="alert-content">{{ exito() }}</div>
+      <button class="alert-close" (click)="exito.set(null)">✕</button>
+    </div>
+  }
+
+  @if (error()) {
+    <div class="alert alert-danger">
+      <span class="alert-icon">⚠️</span>
+      <div class="alert-content">{{ error() }}</div>
+      <button class="alert-close" (click)="error.set(null)">✕</button>
+    </div>
+  }
+
+  @if (isModoLocal()) {
+    <div class="alert alert-info" style="background: rgba(14, 165, 233, 0.12); border: 1px solid rgba(14, 165, 233, 0.35); color: #0284c7; padding: 10px 14px; border-radius: 8px; margin-bottom: 16px; font-size: 13px; display: flex; align-items: center; justify-content: space-between; gap: 8px;">
+      <div style="display: flex; align-items: center; gap: 8px;">
+        <span>ℹ️</span>
+        <span>
+          <strong>Modo Local Resiliente:</strong> Mostrando los 10 contratos precargados de la residencia. (Inicia el backend en <code>localhost:8080</code> para sincronizar con la base de datos).
+        </span>
+      </div>
+      <button type="button" class="btn btn-outline btn-sm" (click)="cargar()" style="padding: 2px 8px; font-size: 11px;">
+        🔄 Reintentar Backend
+      </button>
+    </div>
+  }
+
+  <!-- TARJETAS MÉTRICAS DE AGREGADOS (Calculados con Signals computed) -->
+  <div class="metrics-grid mb-4">
+    <div class="metric-card">
+      <div class="metric-icon bg-blue-subtle">📄</div>
+      <div class="metric-info">
+        <span class="metric-label">Total Contratos</span>
+        <span class="metric-value">{{ totalContratos() }}</span>
+      </div>
+    </div>
+
+    <div class="metric-card">
+      <div class="metric-icon bg-teal-subtle">💰</div>
+      <div class="metric-info">
+        <span class="metric-label">Monto Total Contratado</span>
+        <span class="metric-value text-teal">S/ {{ montoTotalAcumulado() | number:'1.2-2' }}</span>
+      </div>
+    </div>
+
+    <div class="metric-card">
+      <div class="metric-icon bg-purple-subtle">📊</div>
+      <div class="metric-info">
+        <span class="metric-label">Ticket Promedio</span>
+        <span class="metric-value text-purple">S/ {{ ticketPromedio() | number:'1.2-2' }}</span>
+      </div>
+    </div>
+
+    <div class="metric-card">
+      <div class="metric-icon bg-green-subtle">🟢</div>
+      <div class="metric-info">
+        <span class="metric-label">Vigentes vs Anulados</span>
+        <span class="metric-value">{{ contratosVigentes() }} <span class="text-muted-sm">/ {{ contratosAnulados() }}</span></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- BARRA DE FILTROS AVANZADOS -->
+  <div class="card mb-4 filter-card">
+    <div class="card-body filter-bar-body">
+      <div class="filter-group">
+        <label for="filtroEstado">Estado Contractual:</label>
+        <select id="filtroEstado" [ngModel]="filtroEstado()" (ngModelChange)="filtroEstado.set($event)" class="form-control filter-input">
+          <option value="TODOS">Todos los Estados</option>
+          <option value="VIGENTE">Solo VIGENTE</option>
+          <option value="ANULADO">Solo ANULADO</option>
+        </select>
+      </div>
+
+      <div class="filter-group">
+        <label for="filtroDesde">Fecha Desde:</label>
+        <input id="filtroDesde" type="date" [ngModel]="filtroDesde()" (ngModelChange)="filtroDesde.set($event)" class="form-control filter-input" />
+      </div>
+
+      <div class="filter-group">
+        <label for="filtroHasta">Fecha Hasta:</label>
+        <input id="filtroHasta" type="date" [ngModel]="filtroHasta()" (ngModelChange)="filtroHasta.set($event)" class="form-control filter-input" />
+      </div>
+
+      <div class="filter-actions">
+        <button type="button" class="btn btn-primary" (click)="aplicarFiltros()">
+          🔍 Filtrar
+        </button>
+        <button type="button" class="btn btn-outline" (click)="limpiarFiltros()">
+          Limpiar
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TABLA PRINCIPAL DE CONTRATOS CON DETALLE LÍNEA POR LÍNEA -->
+  <div class="card">
+    <div class="card-header d-flex justify-between align-center">
+      <span class="card-title">Listado de Operaciones y Detalle Transaccional</span>
+      <span class="badge badge-info">{{ contratos().length }} contratos encontrados</span>
+    </div>
+
+    <div class="table-responsive">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Código Contrato</th>
+            <th>Huésped Titular</th>
+            <th>Habitación Asignada</th>
+            <th>Vigencia</th>
+            <th>Monto Total</th>
+            <th>Estado</th>
+            <th class="text-right">Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (c of contratos(); track c.id) {
+            <tr class="main-row" [class.row-anulado]="c.estado === 'ANULADO'">
+              <td>
+                <strong class="code-tag">{{ c.codigoContrato }}</strong>
+              </td>
+              <td>
+                <span class="huesped-name">👤 {{ c.huespedNombre || 'Huésped #' + c.huespedId }}</span>
+                @if (c.huespedDni) {
+                  <small class="d-block text-muted">DNI: {{ c.huespedDni }}</small>
+                }
+              </td>
+              <td>
+                <span class="room-badge">
+                  🛏️ Hab. {{ c.habitacionNumero || c.habitacionId }} ({{ c.habitacionTipo || 'Catálogo' }})
+                </span>
+              </td>
+              <td class="text-muted-sm">
+                📅 {{ c.fechaInicio }}<br>al {{ c.fechaFin }}
+              </td>
+              <td>
+                <strong class="price-highlight">S/ {{ c.totalContrato | number:'1.2-2' }}</strong>
+              </td>
+              <td>
+                <span
+                  class="badge-status"
+                  [class.badge-vigente]="c.estado === 'VIGENTE'"
+                  [class.badge-anulado]="c.estado === 'ANULADO'"
+                >
+                  ● {{ c.estado }}
+                </span>
+              </td>
+              <td class="text-right actions-cell">
+                <button
+                  type="button"
+                  class="btn btn-sm btn-outline-teal"
+                  (click)="toggleDetalle(c.id!)"
+                >
+                  {{ contratoExpandidoId() === c.id ? '▲ Ocultar Detalle' : '▼ Ver Desglose (' + (c.detalles?.length || 0) + ')' }}
+                </button>
+
+                <!-- Botón de Anulación con Regla de Negocio condicionado al estado actual -->
+                <button
+                  type="button"
+                  class="btn btn-sm btn-danger"
+                  (click)="anularContrato(c)"
+                  [disabled]="c.estado !== 'VIGENTE'"
+                  [title]="c.estado === 'VIGENTE' ? 'Anular contrato y liberar habitación' : 'El contrato ya está anulado'"
+                >
+                  🚫 Anular
+                </button>
+              </td>
+            </tr>
+
+            <!-- DESGLOSE LÍNEA POR LÍNEA (ACORDEÓN REAL) -->
+            @if (contratoExpandidoId() === c.id) {
+              <tr class="details-row">
+                <td colspan="7">
+                  <div class="inner-details-box">
+                    <div class="inner-details-header">
+                      <strong>Desglose Real de Conceptos y Servicios — {{ c.codigoContrato }}:</strong>
+                    </div>
+                    <table class="table-inner">
+                      <thead>
+                        <tr>
+                          <th>Concepto / Rubro</th>
+                          <th class="text-center">Cantidad</th>
+                          <th class="text-right">Precio Unitario</th>
+                          <th class="text-right">Subtotal</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        @for (det of (c.detalles || []); track $index) {
+                          <tr>
+                            <td>{{ det.concepto }}</td>
+                            <td class="text-center">{{ det.cantidad }}</td>
+                            <td class="text-right">S/ {{ det.precioUnitario | number:'1.2-2' }}</td>
+                            <td class="text-right"><strong>S/ {{ (det.subtotal || det.cantidad * det.precioUnitario) | number:'1.2-2' }}</strong></td>
+                          </tr>
+                        } @empty {
+                          <tr>
+                            <td colspan="4" class="text-center text-muted py-2" style="font-size: 0.85rem;">
+                              No se encontraron conceptos adicionales registrados para este contrato.
+                            </td>
+                          </tr>
+                        }
+                      </tbody>
+                    </table>
+                  </div>
+                </td>
+              </tr>
+            }
+          } @empty {
+            <tr>
+              <td colspan="7" class="empty-state">
+                @if (cargando()) {
+                  <span>Cargando contratos y desgloses desde el backend...</span>
+                } @else {
+                  <span>No se encontraron contratos registrados con los filtros seleccionados.</span>
+                }
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

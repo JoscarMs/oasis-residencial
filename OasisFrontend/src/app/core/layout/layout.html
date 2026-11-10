@@ -1,0 +1,310 @@
+<!-- Top Bar (Cabecera de Contacto y Representante Legal) -->
+<div class="top-bar">
+  <div class="top-bar-container">
+    <div class="top-bar-left">
+      <span>📍 <strong>Juliaca, Puno</strong> (Jr. Santa Catalina 444 | Terreno UPeU 1,800 m²)</span>
+      <span class="divider">|</span>
+      <span>👤 Propietario: <strong>José Carlos Mena Sarmiento</strong></span>
+      <span class="divider">|</span>
+      <span>📧 <a href="mailto:joscar.mspc@gmail.com">joscar.mspc@gmail.com</a></span>
+      <span class="divider">|</span>
+      <span>📞 +51 987 654 321</span>
+    </div>
+    <div class="top-bar-right">
+      <span class="currency-badge">Moneda: <strong>Soles (S/.)</strong></span>
+      <span class="divider">|</span>
+      <span class="keycloak-status">
+        <span class="kc-dot"></span> Keycloak: <code>oasis</code> (:38080)
+      </span>
+    </div>
+  </div>
+</div>
+
+<!-- Header Principal -->
+<header class="header">
+  <div class="brand">
+    <a routerLink="/inicio" class="brand-link-logo">
+      <img src="/logo.png" alt="Oasis Hereditas Logo" class="brand-logo" />
+    </a>
+    <div class="brand-text">
+      <a routerLink="/inicio" class="brand-link">
+        <h1>OASIS HEREDITAS</h1>
+        <span class="brand-subtitle">Residencia Universitaria • Monolito Modular & ABAC (Juliaca)</span>
+      </a>
+    </div>
+  </div>
+
+  <div class="header-user-section">
+    @if (authService.autenticado()) {
+      <!-- Quick User Switcher para demostración y testing ABAC en vivo -->
+      <div class="user-switcher">
+        <label for="userSelect" class="switcher-label">Usuario Activo (ABAC):</label>
+        <select
+          id="userSelect"
+          class="switcher-select"
+          [value]="authService.currentUsername()"
+          (change)="onUserChange($event)"
+        >
+          @for (u of seedUsers; track u.username) {
+            <option [value]="u.username">
+              {{ u.username === 'admin' ? '👑' : (u.username.includes('residente') ? '🚪' : '📋') }} {{ u.username }} ({{ u.roles.join(', ') }})
+            </option>
+          }
+        </select>
+      </div>
+
+      <!-- User Badge -->
+      <div class="user-badge">
+        <span class="user-role">{{ authService.currentRoles().join(' / ') }}</span>
+        <span class="user-name">{{ authService.currentUser()?.nombre || authService.currentUsername() }}</span>
+      </div>
+
+      <button type="button" class="btn-change-pwd" (click)="abrirModalPassword()" title="Cambiar mi contraseña">
+        🔑 Cambiar Clave
+      </button>
+
+      <button type="button" class="btn-logout" (click)="cerrarSesion()" title="Cerrar sesión activa">
+        Cerrar sesión
+      </button>
+    } @else {
+      <div class="user-switcher guest-mode">
+        <label for="guestSelect" class="switcher-label">Ingresar como:</label>
+        <select
+          id="guestSelect"
+          class="switcher-select"
+          (change)="onQuickLogin($event)"
+        >
+          <option value="" selected disabled>⚡ Seleccionar perfil...</option>
+          @for (u of seedUsers; track u.username) {
+            <option [value]="u.username">
+              {{ u.username === 'admin' ? '👑' : (u.username.includes('residente') ? '🚪' : '📋') }} {{ u.username }} ({{ u.roles.join(', ') }})
+            </option>
+          }
+        </select>
+      </div>
+
+      <button type="button" class="btn-login-kc" (click)="iniciarLogin()" title="Iniciar sesión con Keycloak (OAuth2 PKCE)">
+        🔑 Iniciar con Keycloak
+      </button>
+    }
+  </div>
+</header>
+
+@if (authService.keycloakInaccesible()) {
+  <div class="keycloak-alert-bar">
+    <div class="alert-content">
+      <span class="alert-icon">⚠️</span>
+      <div class="alert-text">
+        <div><strong>Keycloak no está encendido en el puerto 38080.</strong> Para usar inicio con Keycloak real: abre Docker Desktop y ejecuta <code>docker start oasis-keycloak</code>.</div>
+        <div class="quick-links">
+          <span>O ingresa al instante en Modo Local:</span>
+          <button type="button" class="btn-quick-pill" (click)="loginAs('admin')">👑 Admin</button>
+          <button type="button" class="btn-quick-pill" (click)="loginAs('supervisor')">📋 Supervisor</button>
+          <button type="button" class="btn-quick-pill" (click)="loginAs('recepcionista')">🛎️ Recepcionista</button>
+          <button type="button" class="btn-quick-pill" (click)="loginAs('residente1')">🚪 Residente 1</button>
+          <button type="button" class="btn-quick-pill" (click)="loginAs('residente2')">🚪 Residente 2</button>
+        </div>
+      </div>
+    </div>
+    <button type="button" class="btn-close-alert" (click)="authService.keycloakInaccesible.set(false)" title="Cerrar aviso">✕</button>
+  </div>
+}
+
+<div class="body">
+  <aside class="sidebar">
+    <div class="sidebar-section">
+      <span class="section-title">GENERAL</span>
+      <nav>
+        <a routerLink="/inicio" routerLinkActive="active">
+          <span class="nav-icon">🏠</span>
+          Inicio / Dashboard
+        </a>
+      </nav>
+    </div>
+
+    @if (authService.autenticado()) {
+      @if (authService.tieneRol('RESIDENTE', 'ADMIN')) {
+        <div class="sidebar-section highlight-section">
+          <span class="section-title highlight-title">PORTAL RESIDENTE</span>
+          <nav>
+            <a routerLink="/mi-habitacion" routerLinkActive="active" class="highlight-link">
+              <span class="nav-icon">🚪</span>
+              Mi Habitación
+            </a>
+            <a routerLink="/servicios" routerLinkActive="active" class="highlight-link">
+              <span class="nav-icon">🧺</span>
+              Comprar Servicios Extras
+            </a>
+          </nav>
+        </div>
+      }
+
+      <div class="sidebar-section">
+        <span class="section-title">MÓDULO ALOJAMIENTO</span>
+        <nav>
+          <a routerLink="/alojamiento/tipos-habitacion" routerLinkActive="active">
+            <span class="nav-icon">🏷️</span>
+            Tipos de Habitación
+          </a>
+          <a routerLink="/alojamiento/habitaciones" routerLinkActive="active">
+            <span class="nav-icon">🛏️</span>
+            Habitaciones (Inventario)
+          </a>
+        </nav>
+      </div>
+
+      @if (authService.tieneRol('ADMIN', 'SUPERVISOR', 'RECEPCIONISTA', 'VENDEDOR')) {
+        <div class="sidebar-section">
+          <span class="section-title">MÓDULO RESIDENTES</span>
+          <nav>
+            <a routerLink="/residentes" routerLinkActive="active">
+              <span class="nav-icon">👥</span>
+              Padrón de Huéspedes
+            </a>
+          </nav>
+        </div>
+      }
+
+      <div class="sidebar-section">
+        <span class="section-title">TRANSACCIONAL (CONTRATOS)</span>
+        <nav>
+          @if (authService.tieneRol('ADMIN', 'SUPERVISOR', 'RECEPCIONISTA', 'VENDEDOR')) {
+            <a routerLink="/contratos/nuevo" routerLinkActive="active">
+              <span class="nav-icon">📝</span>
+              Formalizar Contrato
+            </a>
+          }
+          <a routerLink="/contratos/reporte" routerLinkActive="active">
+            <span class="nav-icon">📊</span>
+            Reporte de Contratos
+          </a>
+          @if (authService.tieneRol('ADMIN', 'SUPERVISOR')) {
+            <a routerLink="/contratos/conceptos" routerLinkActive="active">
+              <span class="nav-icon">⚙️</span>
+              Conceptos de Contrato
+            </a>
+          }
+        </nav>
+      </div>
+
+      <div class="sidebar-section">
+        <span class="section-title">FINANZAS & SERVICIOS</span>
+        <nav>
+          <a routerLink="/pagos" routerLinkActive="active">
+            <span class="nav-icon">💳</span>
+            Pagos & Finanzas (ABAC)
+          </a>
+          <a routerLink="/servicios" routerLinkActive="active">
+            <span class="nav-icon">🧺</span>
+            Servicios & Tienda
+          </a>
+          <a routerLink="/mantenimiento" routerLinkActive="active">
+            <span class="nav-icon">🛠️</span>
+            Mantenimiento / Averías
+          </a>
+        </nav>
+      </div>
+
+      <div class="sidebar-section">
+        <span class="section-title">MÓDULO COMUNICACIÓN</span>
+        <nav>
+          <a routerLink="/comunicacion/avisos" routerLinkActive="active">
+            <span class="nav-icon">📢</span>
+            Avisos Comunitarios
+          </a>
+        </nav>
+      </div>
+
+      @if (authService.tieneRol('ADMIN')) {
+        <div class="sidebar-section">
+          <span class="section-title">SEGURIDAD & ACCESOS</span>
+          <nav>
+            <a routerLink="/seguridad/cuentas" routerLinkActive="active">
+              <span class="nav-icon">🔐</span>
+              Usuarios & Credenciales
+            </a>
+          </nav>
+        </div>
+      }
+    } @else {
+      <div class="sidebar-section">
+        <span class="section-title">ACCESO RESTRINGIDO</span>
+        <div style="padding: 12px 16px; font-size: 13px; color: #a0aec0; line-height: 1.5; background: rgba(255,255,255,0.03); border-radius: 8px; margin: 8px 12px;">
+          🔒 Para acceder a los módulos de habitaciones, residentes, contratos y pagos, seleccione un perfil arriba en la cabecera o inicie sesión.
+        </div>
+      </div>
+    }
+
+    <div class="sidebar-footer">
+      <div class="badge-status">
+        <span class="status-dot"></span> Backend: <code>:8080/api/v1</code>
+      </div>
+    </div>
+  </aside>
+
+  <main class="content">
+    <router-outlet />
+  </main>
+</div>
+
+<!-- Modal Cambiar Contraseña -->
+@if (modalPasswordAbierto()) {
+  <div class="modal-backdrop" (click)="cerrarModalPassword()">
+    <div class="modal-dialog" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3 class="modal-title">🔑 Cambiar Contraseña</h3>
+        <button type="button" class="btn-close" (click)="cerrarModalPassword()">✕</button>
+      </div>
+      <div class="modal-body">
+        <p class="modal-intro">
+          Actualice su clave de acceso al sistema OASIS.
+        </p>
+
+        @if (errorPassword()) {
+          <div class="modal-alert alert-error">⚠️ {{ errorPassword() }}</div>
+        }
+        @if (exitoPassword()) {
+          <div class="modal-alert alert-success">✅ {{ exitoPassword() }}</div>
+        }
+
+        <div class="form-group mb-3">
+          <label>Contraseña Actual *</label>
+          <input
+            type="password"
+            class="form-control"
+            [(ngModel)]="passActual"
+            placeholder="Ingrese su contraseña actual (base: 123456)"
+          />
+        </div>
+
+        <div class="form-group mb-3">
+          <label>Nueva Contraseña *</label>
+          <input
+            type="password"
+            class="form-control"
+            [(ngModel)]="passNueva"
+            placeholder="Mínimo 4 caracteres"
+          />
+        </div>
+
+        <div class="form-group mb-3">
+          <label>Confirmar Nueva Contraseña *</label>
+          <input
+            type="password"
+            class="form-control"
+            [(ngModel)]="passConfirm"
+            placeholder="Repita la nueva contraseña"
+          />
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" (click)="cerrarModalPassword()" [disabled]="guardandoPassword()">
+          Cancelar
+        </button>
+        <button type="button" class="btn btn-primary" (click)="ejecutarCambioPassword()" [disabled]="guardandoPassword()">
+          {{ guardandoPassword() ? 'Guardando...' : 'Actualizar Contraseña' }}
+        </button>
+      </div>
+    </div>
+  </div>
+}

@@ -1,0 +1,109 @@
+<div class="page-container">
+  <div class="page-header">
+    <div>
+      <div class="breadcrumb">Comunicación Comunitaria</div>
+      <h2 class="page-title">Tablón de Avisos & Convivencia</h2>
+      <p class="page-desc">Comunicados oficiales, normativas de residencia y anuncios para los residentes de OASIS.</p>
+    </div>
+    @if (authService.isAdmin() || authService.isSupervisor()) {
+      <button class="btn btn-primary" (click)="abrirModalNuevo()">
+        <span>📢</span> Publicar Comunicado
+      </button>
+    }
+  </div>
+
+  @if (successMessage()) {
+    <div class="alert alert-success">
+      <span>✅</span> {{ successMessage() }}
+    </div>
+  }
+
+  @if (error()) {
+    <div class="alert alert-danger">
+      <span class="alert-icon">⚠️</span>
+      <div class="alert-content">{{ error() }}</div>
+    </div>
+  }
+
+  @if (loading()) {
+    <div class="loading-state">
+      <div class="spinner"></div>
+      <p>Cargando avisos de la cartelera...</p>
+    </div>
+  } @else {
+    <div class="avisos-grid">
+      @for (aviso of avisos(); track aviso.id) {
+        <div class="aviso-card" [class.pinned]="aviso.fijado">
+          <div class="aviso-header">
+            <span class="badge" [class.badge-cat]="!aviso.fijado" [class.badge-pin]="aviso.fijado">
+              {{ aviso.fijado ? '📌 FIJADO' : aviso.categoria }}
+            </span>
+            <div class="header-right">
+              <span class="aviso-date">{{ aviso.fechaPublicacion }}</span>
+              @if (authService.isAdmin()) {
+                <button class="btn-del" title="Eliminar comunicado" (click)="eliminarAviso(aviso.id)">✕</button>
+              }
+            </div>
+          </div>
+          <h3 class="aviso-title">{{ aviso.titulo }}</h3>
+          <p class="aviso-body">{{ aviso.contenido }}</p>
+        </div>
+      } @empty {
+        <div class="empty-box">No hay avisos registrados actualmente en la cartelera.</div>
+      }
+    </div>
+  }
+</div>
+
+<!-- Modal Publicar Aviso -->
+@if (isModalOpen()) {
+  <div class="modal-backdrop" (click)="cerrarModal()">
+    <div class="modal-dialog" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3 class="modal-title">Publicar Comunicado en Cartelera</h3>
+        <button class="btn-close" (click)="cerrarModal()">✕</button>
+      </div>
+
+      <div class="modal-body">
+        <div class="form-grid">
+          <div class="form-group full-width">
+            <label>Título del Comunicado *</label>
+            <input type="text" [(ngModel)]="formModel.titulo" placeholder="Ej: Jornada de Limpieza y Convivencia" />
+          </div>
+
+          <div class="form-group">
+            <label>Categoría</label>
+            <select [(ngModel)]="formModel.categoria">
+              <option value="EVENTO">Evento Comunitario</option>
+              <option value="Cocina">Cocina Grupal</option>
+              <option value="Cine">Cine & Recreación</option>
+              <option value="NORMA">Norma de Convivencia</option>
+              <option value="GENERAL">General / Administrativo</option>
+            </select>
+          </div>
+
+          <div class="form-group checkbox-group">
+            <label class="checkbox-label">
+              <input type="checkbox" [(ngModel)]="formModel.fijado" />
+              <span>📌 Fijar en la parte superior</span>
+            </label>
+          </div>
+
+          <div class="form-group full-width">
+            <label>Contenido del Comunicado *</label>
+            <textarea
+              rows="5"
+              [(ngModel)]="formModel.contenido"
+              placeholder="Escriba el comunicado detallado para los residentes..."
+            ></textarea>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn btn-secondary" (click)="cerrarModal()">Cancelar</button>
+        <button class="btn btn-primary" (click)="guardarAviso()">Publicar</button>
+      </div>
+    </div>
+  </div>
+}

@@ -1,0 +1,274 @@
+<div class="page-container">
+  <div class="page-header">
+    <div>
+      <div class="breadcrumb">Contratos / Operación Transaccional Cabecera-Detalle</div>
+      <h2 class="page-title">Formalización de Contrato de Residencia</h2>
+      <p class="page-desc">Registre el contrato cabecera junto con sus cuotas, servicios y cobros dinámicos con validación transaccional atómica.</p>
+    </div>
+    <a routerLink="/contratos/reporte" class="btn btn-outline">
+      📊 Ir al Reporte de Contratos
+    </a>
+  </div>
+
+  @if (error()) {
+    <div class="alert alert-danger">
+      <span class="alert-icon">⚠️</span>
+      <div class="alert-content">{{ error() }}</div>
+      <button class="alert-close" (click)="error.set(null)">✕</button>
+    </div>
+  }
+
+  <form [formGroup]="form" (ngSubmit)="solicitarConfirmacion()">
+    <!-- CABECERA DEL CONTRATO -->
+    <div class="card card-section mb-4">
+      <div class="card-header bg-teal-subtle">
+        <span class="card-title">1. Datos de la Cabecera Contractual</span>
+        <span class="badge badge-info">Operación Atómica</span>
+      </div>
+      <div class="card-body">
+        <div class="form-row">
+          <!-- Selección de Huésped -->
+          <div class="form-group col-half">
+            <label for="huespedId">Huésped / Residente Titular <span class="required">*</span></label>
+            <select id="huespedId" formControlName="huespedId" class="form-control">
+              <option [value]="0" disabled>-- Seleccione el Huésped Registrado --</option>
+              @for (h of huespedes(); track h.id) {
+                <option [value]="h.id">
+                  👤 {{ h.nombreCompleto }} (DNI: {{ h.numeroDocumento }} - {{ h.perfil }})
+                </option>
+              }
+            </select>
+            @if (form.controls.huespedId.invalid && form.controls.huespedId.touched) {
+              <p class="field-error">Debe seleccionar un huésped válido.</p>
+            }
+          </div>
+
+          <!-- Selección de Habitación Disponible -->
+          <div class="form-group col-half">
+            <label for="habitacionId">Habitación Física Asignada <span class="required">*</span></label>
+            <select id="habitacionId" formControlName="habitacionId" class="form-control" (change)="onHabitacionChange($event)">
+              <option [value]="0" disabled>-- Seleccione Habitación Disponible --</option>
+              @for (hab of habitacionesDisponibles(); track hab.id) {
+                <option [value]="hab.id">
+                  🛏️ Hab. {{ hab.numero }} ({{ hab.tipoHabitacionNombre }} - Piso {{ hab.piso }} | Tarifa: S/ {{ hab.precio }})
+                </option>
+              }
+            </select>
+            @if (form.controls.habitacionId.invalid && form.controls.habitacionId.touched) {
+              <p class="field-error">Debe seleccionar una habitación disponible.</p>
+            }
+          </div>
+        </div>
+
+        <div class="form-row mt-3">
+          <div class="form-group col-half">
+            <label for="tipoContratoId">Tipo de Régimen Contractual <span class="required">*</span></label>
+            <select id="tipoContratoId" formControlName="tipoContratoId" class="form-control" (change)="onTipoContratoChange($event)">
+              @for (tipo of tiposContrato(); track tipo.id) {
+                <option [value]="tipo.id">
+                  📄 {{ tipo.nombre }} ({{ tipo.duracionMeses }} meses)
+                </option>
+              }
+            </select>
+            <small class="field-hint">⏱️ La fecha de término se sincroniza automáticamente según la duración seleccionada.</small>
+          </div>
+
+          <div class="form-group col-half">
+            <div class="form-row" style="margin: 0; gap: 0.5rem;">
+              <div style="flex: 1;">
+                <label for="fechaInicio">Fecha Inicio <span class="required">*</span></label>
+                <input id="fechaInicio" type="date" formControlName="fechaInicio" class="form-control" (change)="onFechaInicioChange()" />
+              </div>
+              <div style="flex: 1;">
+                <label for="fechaFin">Fecha Término <span class="required">*</span></label>
+                <input id="fechaFin" type="date" formControlName="fechaFin" class="form-control" />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- DETALLE DINÁMICO (FormArray) -->
+    <div class="card card-section mb-4">
+      <div class="card-header d-flex justify-between align-center">
+        <div>
+          <span class="card-title">2. Desglose de Cobros y Servicios (Detalle Dinámico)</span>
+          <span class="badge badge-primary ml-2">{{ totalItems() }} concepto(s)</span>
+        </div>
+        <button type="button" class="btn btn-sm btn-outline-teal" (click)="agregarLinea('Alquiler Adicional', 1, 480)">
+          ➕ Añadir Línea
+        </button>
+      </div>
+
+      <div class="card-body">
+        <!-- Conceptos Rápidos Sugeridos Dinámicos -->
+        <div class="quick-chips mb-3">
+          <div class="quick-chips-top">
+            <span class="quick-chips-label">Añadir concepto rápido al contrato:</span>
+            <a routerLink="/contratos/conceptos" class="btn-manage-chips">
+              ⚙️ Gestionar Conceptos y Precios
+            </a>
+          </div>
+          <div class="quick-chips-list">
+            @for (c of conceptosRapidos(); track c.id) {
+              <button
+                type="button"
+                class="chip-btn"
+                (click)="agregarConceptoRapido(c.nombre, c.precioSugerido)"
+                [title]="c.descripcion || c.nombre"
+              >
+                {{ c.icono || '🏷️' }} {{ c.nombre }} (S/ {{ c.precioSugerido | number:'1.2-2' }})
+              </button>
+            } @empty {
+              <button type="button" class="chip-btn" (click)="agregarConceptoRapido('Garantía Obligatoria (2 meses)', 700)">
+                🛡️ Garantía Obligatoria (S/ 700)
+              </button>
+              <button type="button" class="chip-btn" (click)="agregarConceptoRapido('Garantía Simple (1 mes)', 350)">
+                🛡️ Garantía Simple (S/ 350)
+              </button>
+              <button type="button" class="chip-btn" (click)="agregarConceptoRapido('Internet Fibra Óptica Alta Velocidad', 50)">
+                🌐 Internet Dedicado (S/ 50)
+              </button>
+              <button type="button" class="chip-btn" (click)="agregarConceptoRapido('Cochera Vehicular Techada', 120)">
+                🚗 Cochera (S/ 120)
+              </button>
+              <button type="button" class="chip-btn" (click)="agregarConceptoRapido('Frigobar Ejecutivo en Habitación', 60)">
+                🧊 Frigobar (S/ 60)
+              </button>
+              <button type="button" class="chip-btn" (click)="agregarConceptoRapido('Horno Microondas', 35)">
+                ♨️ Microondas (S/ 35)
+              </button>
+              <button type="button" class="chip-btn" (click)="agregarConceptoRapido('Servicio de Limpieza Quincenal', 40)">
+                🧹 Limpieza Quincenal (S/ 40)
+              </button>
+              <button type="button" class="chip-btn" (click)="agregarConceptoRapido('Custodia de Equipaje en Vacaciones', 50)">
+                📦 Custodia Equipaje (S/ 50)
+              </button>
+            }
+          </div>
+        </div>
+
+        <div class="table-responsive">
+          <table class="table table-lines">
+            <thead>
+              <tr>
+                <th style="width: 45%;">Concepto o Servicio</th>
+                <th style="width: 15%;">Cantidad</th>
+                <th style="width: 20%;">Precio Unitario (S/.)</th>
+                <th style="width: 15%;">Subtotal (S/.)</th>
+                <th style="width: 5%; text-align: center;">Acción</th>
+              </tr>
+            </thead>
+            <tbody formArrayName="detalles">
+              @for (linea of detallesArray.controls; track $index; let i = $index) {
+                <tr [formGroupName]="i" class="line-row">
+                  <td>
+                    <input
+                      type="text"
+                      formControlName="concepto"
+                      class="form-control"
+                      placeholder="Ej. Alquiler Mes Octubre, Limpieza..."
+                    />
+                    @if (linea.get('concepto')?.invalid && linea.get('concepto')?.touched) {
+                      <p class="field-error-sub">Concepto requerido (máx. 60 car.)</p>
+                    }
+                  </td>
+                  <td>
+                    <input
+                      type="number"
+                      min="1"
+                      formControlName="cantidad"
+                      class="form-control text-center"
+                    />
+                  </td>
+                  <td>
+                    <input
+                      type="number"
+                      step="0.01"
+                      min="0.01"
+                      formControlName="precioUnitario"
+                      class="form-control text-right"
+                    />
+                  </td>
+                  <td class="subtotal-cell">
+                    <strong>S/ {{ (linea.get('cantidad')?.value * linea.get('precioUnitario')?.value) | number:'1.2-2' }}</strong>
+                  </td>
+                  <td class="text-center">
+                    <button
+                      type="button"
+                      class="btn-icon-danger"
+                      (click)="quitarLinea(i)"
+                      [disabled]="detallesArray.length === 1"
+                      title="Eliminar línea"
+                    >
+                      🗑️
+                    </button>
+                  </td>
+                </tr>
+              }
+            </tbody>
+            <tfoot>
+              <tr class="total-summary-row">
+                <td colspan="3" class="text-right"><strong>TOTAL CALCULADO EN VIVO (Signals computed):</strong></td>
+                <td class="total-amount-cell">
+                  <span class="total-big">S/ {{ totalGeneral() | number:'1.2-2' }}</span>
+                </td>
+                <td></td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ACCIONES PRINCIPALES -->
+    <div class="form-actions-bar">
+      <a routerLink="/contratos/reporte" class="btn btn-outline">Cancelar</a>
+      <button type="submit" [disabled]="guardando()" class="btn btn-primary btn-lg">
+        @if (guardando()) {
+          <span>Procesando operación atómica...</span>
+        } @else {
+          <span>📋 Revisar y Formalizar Contrato (S/ {{ totalGeneral() | number:'1.2-2' }})</span>
+        }
+      </button>
+    </div>
+  </form>
+
+  <!-- MODAL DE CONFIRMACIÓN EXPLÍCITA ANTES DE COMPROMETER LA OPERACIÓN (Evita Knight Capital) -->
+  @if (mostrarModalConfirmacion()) {
+    <div class="modal-backdrop">
+      <div class="modal-box">
+        <div class="modal-header">
+          <h3 class="modal-title">⚠️ Confirmación de Operación Contractual Transaccional</h3>
+          <button class="modal-close" (click)="cerrarModal()">✕</button>
+        </div>
+        <div class="modal-body">
+          <p class="modal-notice">
+            Revise cuidadosamente los datos antes de emitir la operación irreversible. Al confirmar, la habitación quedará bloqueada atómicamente y se generará el contrato en el backend.
+          </p>
+
+          <div class="summary-section">
+            <div class="summary-item"><strong>Huésped Titular:</strong> {{ getNombreHuesped() }}</div>
+            <div class="summary-item"><strong>Habitación Asignada:</strong> {{ getDetalleHabitacion() }}</div>
+            <div class="summary-item">
+              <strong>Vigencia:</strong> {{ form.get('fechaInicio')?.value }} hasta {{ form.get('fechaFin')?.value }}
+            </div>
+            <div class="summary-item"><strong>Cantidad de Ítems en Detalle:</strong> {{ totalItems() }} conceptos</div>
+          </div>
+
+          <div class="summary-total-box">
+            <span>MONTO TOTAL A COMPROMETER:</span>
+            <span class="summary-total-number">S/ {{ totalGeneral() | number:'1.2-2' }}</span>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline" (click)="cerrarModal()">← Volver a Modificar</button>
+          <button type="button" class="btn btn-success" (click)="confirmarYEnviar()">
+            ✅ Confirmar y Enviar al Backend
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+</div>

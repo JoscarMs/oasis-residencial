@@ -1,0 +1,85 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 565 160" width="100%" height="100%">
+  <defs>
+    <linearGradient id="l2_shield_grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1E3A8A" />
+      <stop offset="100%" stop-color="#0F172A" />
+    </linearGradient>
+    <linearGradient id="l2_gold" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FDE047" />
+      <stop offset="50%" stop-color="#D97706" />
+      <stop offset="100%" stop-color="#92400E" />
+    </linearGradient>
+    <filter id="l2_shadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="3" stdDeviation="4" flood-color="#0F172A" flood-opacity="0.2" />
+    </filter>
+  </defs>
+
+  <!-- ISOTIPO: ESCUDO MODERNO HEREDITAS -->
+  <g transform="translate(25, 10)" filter="url(#l2_shadow)">
+    <!-- Silueta del Escudo Heráldico Moderno -->
+    <path d="M 20,24 Q 70,12 120,24 L 120,76 C 120,108 70,132 70,132 C 70,132 20,108 20,76 Z" 
+          fill="url(#l2_shield_grad)" stroke="url(#l2_gold)" stroke-width="3" />
+
+    <!-- Borde interior fino -->
+    <path d="M 26,30 Q 70,20 114,30 L 114,75 C 114,103 70,124 70,124 C 70,124 26,103 26,75 Z" 
+          fill="none" stroke="rgba(253, 224, 71, 0.4)" stroke-width="1.2" />
+
+    <!-- Sol del Altiplano en el tercio superior -->
+    <circle cx="70" cy="44" r="14" fill="url(#l2_gold)" />
+    <!-- Rayos sutiles -->
+    <path d="M 70,24 L 70,28 M 70,60 L 70,64 M 50,44 L 54,44 M 86,44 L 90,44" stroke="#FDE047" stroke-width="1.5" stroke-linecap="round" />
+
+    <!-- Silueta del Edificio Residencial Oasis -->
+    <path d="M 52,88 L 52,56 L 70,48 L 88,56 L 88,88 Z" fill="#0F172A" stroke="url(#l2_gold)" stroke-width="1.8" />
+    
+    <!-- Ventanas iluminadas (hogar) -->
+    <rect x="58" y="60" width="4" height="5" rx="0.8" fill="#FDE047" />
+    <rect x="68" y="60" width="4" height="5" rx="0.8" fill="#FDE047" />
+    <rect x="78" y="60" width="4" height="5" rx="0.8" fill="#FDE047" />
+    <rect x="58" y="69" width="4" height="5" rx="0.8" fill="#FDE047" />
+    <rect x="68" y="69" width="4" height="5" rx="0.8" fill="#FDE047" />
+    <rect x="78" y="69" width="4" height="5" rx="0.8" fill="#FDE047" />
+
+    <!-- Puerta abierta acogedora -->
+    <path d="M 67,88 L 67,78 Q 70,76 73,78 L 73,88 Z" fill="#FDE047" />
+
+    <!-- 5 Eslabones/Personas en Círculo (Mesa de Viernes de Juegos, Egresados & Amigos) -->
+    <g transform="translate(0, 12)">
+      <circle cx="48" cy="98" r="3" fill="#FDE047" />
+      <circle cx="59" cy="103" r="3" fill="#FDE047" />
+      <circle cx="70" cy="105" r="3.5" fill="#FDE047" />
+      <circle cx="81" cy="103" r="3" fill="#FDE047" />
+      <circle cx="92" cy="98" r="3" fill="#FDE047" />
+      <!-- Arco conector de manos/hermandad -->
+      <path d="M 46,104 C 58,114 82,114 94,104" stroke="#FDE047" stroke-width="1.8" fill="none" stroke-linecap="round" />
+    </g>
+  </g>
+
+  <!-- TIPOGRAFÍA DERECHA -->
+  <g transform="translate(180, 42)">
+    <text x="0" y="32" font-family="'Trajan Pro', 'Cinzel', 'Palatino', serif" font-size="33" font-weight="700" letter-spacing="3.5" fill="#0A192F">
+      OASIS
+    </text>
+    <text x="135" y="32" font-family="'Trajan Pro', 'Cinzel', 'Palatino', serif" font-size="33" font-weight="600" letter-spacing="3.5" fill="#1E3A8A">
+      HEREDITAS
+    </text>
+
+    <!-- Barra de distinción dorada -->
+    <rect x="0" y="44" width="360" height="2" fill="url(#l2_gold)" rx="1" />
+
+    <!-- SUBTÍTULO -->
+    <text x="0" y="64" font-family="'Montserrat', 'Inter', sans-serif" font-size="10.5" font-weight="600" letter-spacing="2.5" fill="#334155">
+      PATRIMONIO, ESTUDIO &amp; CONVIVENCIA
+    </text>
+    <text x="0" y="80" font-family="'Inter', sans-serif" font-size="9" font-weight="500" letter-spacing="1.5" fill="#64748B">
+      COMUNIDAD RESIDENCIAL UNIVERSITARIA • JULIACA
+    </text>
+
+    <!-- Pequeños badges de valores -->
+    <g transform="translate(0, 92)">
+      <text x="0" y="9" font-family="'Inter', sans-serif" font-size="8" font-weight="700" fill="#B45309">
+        ★ HOGAR ACADÉMICO  •  ★ ESPÍRITU JOVEN  •  ★ RED DE EGRESADOS
+      </text>
+    </g>
+  </g>
+</svg>

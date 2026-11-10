@@ -1,0 +1,195 @@
+<div class="page-container">
+  <div class="page-header">
+    <div>
+      <div class="breadcrumb">Módulo Mantenimiento & Servicios</div>
+      <h2 class="page-title">Gestión de Averías e Incidencias Técnicas</h2>
+      <p class="page-desc">
+        Recepción, asignación y resolución de reportes de mantenimiento en las habitaciones de la residencia.
+      </p>
+    </div>
+    <button class="btn btn-primary" (click)="abrirModalNuevo()">
+      <span>🔧</span> Reportar Avería
+    </button>
+  </div>
+
+  @if (successMessage()) {
+    <div class="alert alert-success">
+      <span>✅</span> {{ successMessage() }}
+    </div>
+  }
+
+  @if (error()) {
+    <div class="alert alert-danger">
+      <span>⚠️</span> {{ error() }}
+    </div>
+  }
+
+  <!-- Stats Grid -->
+  <div class="stats-grid">
+    <div class="stat-card" [class.active-filter]="selectedEstado() === 'TODOS'" (click)="selectedEstado.set('TODOS')">
+      <div class="stat-count">{{ stats().total }}</div>
+      <div class="stat-label">Total Reportes</div>
+    </div>
+    <div class="stat-card stat-pending" [class.active-filter]="selectedEstado() === 'PENDIENTE'" (click)="selectedEstado.set('PENDIENTE')">
+      <div class="stat-count">{{ stats().pendientes }}</div>
+      <div class="stat-label">Pendientes</div>
+    </div>
+    <div class="stat-card stat-process" [class.active-filter]="selectedEstado() === 'EN_PROCESO'" (click)="selectedEstado.set('EN_PROCESO')">
+      <div class="stat-count">{{ stats().enProceso }}</div>
+      <div class="stat-label">En Proceso</div>
+    </div>
+    <div class="stat-card stat-solved" [class.active-filter]="selectedEstado() === 'SOLUCIONADO'" (click)="selectedEstado.set('SOLUCIONADO')">
+      <div class="stat-count">{{ stats().solucionados }}</div>
+      <div class="stat-label">Solucionados</div>
+    </div>
+  </div>
+
+  <!-- Toolbar -->
+  <div class="toolbar">
+    <div class="search-box">
+      <span class="search-icon">🔍</span>
+      <input
+        type="text"
+        placeholder="Buscar por avería, habitación o descripción..."
+        [ngModel]="searchTerm()"
+        (ngModelChange)="searchTerm.set($event)"
+      />
+    </div>
+
+    <div class="filter-group">
+      <label>Estado:</label>
+      <select [ngModel]="selectedEstado()" (ngModelChange)="selectedEstado.set($event)">
+        <option value="TODOS">Todos</option>
+        <option value="PENDIENTE">Pendientes</option>
+        <option value="EN_PROCESO">En Proceso</option>
+        <option value="SOLUCIONADO">Solucionados</option>
+      </select>
+    </div>
+  </div>
+
+  @if (loading()) {
+    <div class="loading-state">
+      <div class="spinner"></div>
+      <p>Cargando incidencias de mantenimiento...</p>
+    </div>
+  } @else {
+    <div class="table-card">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Habitación</th>
+            <th>Tipo de Avería</th>
+            <th>Descripción</th>
+            <th>Fecha</th>
+            <th>Estado</th>
+            @if (authService.isAdmin() || authService.isSupervisor()) {
+              <th class="text-right">Gestión Administrativa</th>
+            }
+          </tr>
+        </thead>
+        <tbody>
+          @for (r of filteredReportes(); track r.id) {
+            <tr>
+              <td class="cell-id">#{{ r.id }}</td>
+              <td>
+                <span class="room-pill">Hab. {{ r.habitacionId }}</span>
+              </td>
+              <td>
+                <span class="averia-badge">{{ r.tipoAveria }}</span>
+              </td>
+              <td class="desc-cell">{{ r.descripcion }}</td>
+              <td class="date-cell">{{ r.fechaReporte || 'Reciente' }}</td>
+              <td>
+                <span
+                  class="status-badge"
+                  [class.status-pending]="r.estado === 'PENDIENTE'"
+                  [class.status-process]="r.estado === 'EN_PROCESO'"
+                  [class.status-solved]="r.estado === 'SOLUCIONADO'"
+                >
+                  {{ r.estado }}
+                </span>
+              </td>
+              @if (authService.isAdmin() || authService.isSupervisor()) {
+                <td class="text-right actions-cell">
+                  @if (r.estado === 'PENDIENTE') {
+                    <button class="btn-sm btn-process" (click)="cambiarEstado(r, 'EN_PROCESO')">
+                      Atender ⚙️
+                    </button>
+                  }
+                  @if (r.estado === 'EN_PROCESO' || r.estado === 'PENDIENTE') {
+                    <button class="btn-sm btn-solved" (click)="cambiarEstado(r, 'SOLUCIONADO')">
+                      Resolver ✓
+                    </button>
+                  }
+                  @if (r.estado === 'SOLUCIONADO') {
+                    <span class="solved-indicator">✓ Completado</span>
+                  }
+                </td>
+              }
+            </tr>
+          } @empty {
+            <tr>
+              <td [attr.colspan]="authService.isAdmin() || authService.isSupervisor() ? 7 : 6" class="text-center empty-cell">
+                No hay incidencias registradas en esta categoría.
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</div>
+
+<!-- Modal Registrar Incidencia -->
+@if (isModalOpen()) {
+  <div class="modal-backdrop" (click)="cerrarModal()">
+    <div class="modal-dialog" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3 class="modal-title">Registrar Reporte de Avería</h3>
+        <button class="btn-close" (click)="cerrarModal()">✕</button>
+      </div>
+
+      <div class="modal-body">
+        <div class="form-grid">
+          <div class="form-group">
+            <label>N° Habitación *</label>
+            <input type="number" [(ngModel)]="formModel.habitacionId" placeholder="Ej: 101" />
+          </div>
+
+          <div class="form-group">
+            <label>ID Huésped / Residente</label>
+            <input type="number" [(ngModel)]="formModel.huespedId" placeholder="Ej: 1" />
+          </div>
+
+          <div class="form-group full-width">
+            <label>Tipo de Avería *</label>
+            <select [(ngModel)]="formModel.tipoAveria">
+              <option value="Plomería / Sanitarios">Plomería / Sanitarios (Fuga de agua, grifo, inodoro)</option>
+              <option value="Electricidad / Luces">Electricidad / Luces (Enchufe, interruptor, fluorescente)</option>
+              <option value="Cerrajería / Puertas">Cerrajería / Puertas (Chapa, llave, picaporte)</option>
+              <option value="Mobiliario / Cama">Mobiliario / Cama (Colchón, escritorio, armario)</option>
+              <option value="Aire Acondicionado">Aire Acondicionado / Ventilación</option>
+              <option value="Wi-Fi / Conectividad">Wi-Fi / Conectividad de Red</option>
+              <option value="Otro">Otro problema técnico</option>
+            </select>
+          </div>
+
+          <div class="form-group full-width">
+            <label>Detalle o Descripción del Problema *</label>
+            <textarea
+              rows="4"
+              [(ngModel)]="formModel.descripcion"
+              placeholder="Describa el inconveniente con el mayor detalle posible para que el técnico acuda con los repuestos adecuados..."
+            ></textarea>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn btn-secondary" (click)="cerrarModal()">Cancelar</button>
+        <button class="btn btn-primary" (click)="guardarReporte()">Enviar Reporte</button>
+      </div>
+    </div>
+  </div>
+}
